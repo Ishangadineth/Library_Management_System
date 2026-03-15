@@ -32,6 +32,7 @@ export default function FinesPage() {
 
   useEffect(() => {
     const fetch = async () => {
+      if (!db) return;
       setLoading(true);
       const q = query(
         collection(db, "transactions"),
