@@ -39,6 +39,7 @@ export default function CirculationPage() {
   const [saving, setSaving] = useState(false);
 
   const fetchAll = async () => {
+    if (!db) return;
     setLoading(true);
     const [txSnap, booksSnap, membersSnap] = await Promise.all([
       getDocs(query(collection(db, "transactions"), orderBy("issueDate", "desc"))),
@@ -55,6 +56,7 @@ export default function CirculationPage() {
 
   const handleIssue = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!db) return;
     setSaving(true);
     const book = books.find((b) => b.id === form.bookId);
     const member = members.find((m) => m.id === form.memberId);
@@ -82,6 +84,7 @@ export default function CirculationPage() {
   };
 
   const handleReturn = async (tx: Transaction) => {
+    if (!db) return;
     if (!confirm(`Mark "${tx.bookTitle}" as returned?`)) return;
     await updateDoc(doc(db, "transactions", tx.id), {
       status: "returned",

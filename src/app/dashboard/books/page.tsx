@@ -35,6 +35,7 @@ export default function BooksPage() {
   const [saving, setSaving] = useState(false);
 
   const fetchBooks = async () => {
+    if (!db) return;
     setLoading(true);
     const q = query(collection(db, "books"), orderBy("title"));
     const snap = await getDocs(q);
@@ -82,6 +83,7 @@ export default function BooksPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!db) return;
     setSaving(true);
     try {
       if (editId) {
@@ -102,6 +104,7 @@ export default function BooksPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!db) return;
     if (!confirm("Are you sure you want to delete this book?")) return;
     await deleteDoc(doc(db, "books", id));
     await fetchBooks();

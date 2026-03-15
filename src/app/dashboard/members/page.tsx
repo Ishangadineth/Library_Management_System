@@ -31,6 +31,7 @@ export default function MembersPage() {
   const [error, setError] = useState("");
 
   const fetchMembers = async () => {
+    if (!db) return;
     setLoading(true);
     const q = query(
       collection(db, "users"),
@@ -61,6 +62,7 @@ export default function MembersPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth || !db) return;
     setSaving(true);
     setError("");
     try {
@@ -85,6 +87,7 @@ export default function MembersPage() {
   };
 
   const handleDelete = async (id: string) => {
+    if (!db) return;
     if (!confirm("Delete this member record?")) return;
     await deleteDoc(doc(db, "users", id));
     await fetchMembers();

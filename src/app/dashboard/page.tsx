@@ -23,6 +23,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchStats = async () => {
+      if (!db) return;
       try {
         const [booksSnap, membersSnap, loansSnap] = await Promise.all([
           getDocs(collection(db, "books")),
