@@ -34,9 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      if (currentUser) {
+      if (currentUser && db) {
         const snap = await getDoc(doc(db, "users", currentUser.uid));
         setRole(snap.exists() ? snap.data().role : "member");
       } else {
@@ -48,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    if (!auth || !db) return;
     const result = await signInWithEmailAndPassword(auth, email, password);
     const snap = await getDoc(doc(db, "users", result.user.uid));
     const userRole = snap.exists() ? snap.data().role : "member";
@@ -57,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    if (!auth) return;
     await signOut(auth);
     router.push("/login");
   };
