@@ -5,6 +5,7 @@ import {
   serverTimestamp, query, orderBy, Timestamp, where,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 import { Plus, CheckCircle, Clock, X, ArrowLeftRight } from "lucide-react";
 import styles from "./circulation.module.css";
 
@@ -37,14 +38,15 @@ export default function CirculationPage() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ bookId: "", memberId: "" });
   const [saving, setSaving] = useState(false);
+  const { orgId } = useAuth();
 
   const fetchAll = async () => {
-    if (!db) return;
+    if (!db || !orgId) return;
     setLoading(true);
     const [txSnap, booksSnap, membersSnap] = await Promise.all([
-      getDocs(query(collection(db, "transactions"), orderBy("issueDate", "desc"))),
-      getDocs(collection(db, "books")),
-      getDocs(query(collection(db, "users"), where("role", "==", "member"))),
+      getDocs(query(collection(db, "transactions"), where("orgId", "==", orgId), orderBy("issueDate", "desc"))),
+      getDocs(query(collection(db, "books"), where("orgId", "==", orgId))),
+      getDocs(query(collection(db, "users"), where("role", "==", "member"), where("orgId", "==", orgId))),
     ]);
     setTransactions(txSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Transaction)));
     setBooks(booksSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Book)));
@@ -52,7 +54,11 @@ export default function CirculationPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  useEffect(() => {
+    if (orgId) {
+      fetchAll();
+    }
+  }, [orgId]);
 
   const handleIssue = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +77,7 @@ export default function CirculationPage() {
         dueDate: Timestamp.fromDate(getDueDate()),
         returnDate: null,
         status: "active",
+        orgId: orgId,
       });
       await updateDoc(doc(db, "books", form.bookId), {
         availableCopies: book.availableCopies - 1,

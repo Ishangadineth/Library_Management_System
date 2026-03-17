@@ -4,6 +4,7 @@ import {
   collection, getDocs, query, orderBy, where, Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 import { AlertCircle } from "lucide-react";
 import styles from "./fines.module.css";
 
@@ -29,14 +30,16 @@ function calcFine(dueDate: Timestamp): number {
 export default function FinesPage() {
   const [overdue, setOverdue] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const { orgId } = useAuth();
 
   useEffect(() => {
     const fetch = async () => {
-      if (!db) return;
+      if (!db || !orgId) return;
       setLoading(true);
       const q = query(
         collection(db, "transactions"),
         where("status", "==", "active"),
+        where("orgId", "==", orgId),
         orderBy("dueDate", "asc")
       );
       const snap = await getDocs(q);
@@ -47,8 +50,10 @@ export default function FinesPage() {
       setOverdue(data);
       setLoading(false);
     };
-    fetch();
-  }, []);
+    if (orgId) {
+      fetch();
+    }
+  }, [orgId]);
 
   const total = overdue.reduce((sum, tx) => sum + calcFine(tx.dueDate), 0);
 

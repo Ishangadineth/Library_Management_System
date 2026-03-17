@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 import { BookOpen, Users, ArrowLeftRight, AlertCircle } from "lucide-react";
 import styles from "./page.module.css";
 
@@ -19,16 +20,19 @@ export default function DashboardPage() {
     activeLoans: 0,
     overdueLoans: 0,
   });
+  });
   const [loading, setLoading] = useState(true);
+  const { orgId } = useAuth();
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!db) return;
+      if (!db || !orgId) return;
+      setLoading(true);
       try {
         const [booksSnap, membersSnap, loansSnap] = await Promise.all([
-          getDocs(collection(db, "books")),
-          getDocs(query(collection(db, "users"), where("role", "==", "member"))),
-          getDocs(query(collection(db, "transactions"), where("status", "==", "active"))),
+          getDocs(query(collection(db, "books"), where("orgId", "==", orgId))),
+          getDocs(query(collection(db, "users"), where("role", "==", "member"), where("orgId", "==", orgId))),
+          getDocs(query(collection(db, "transactions"), where("status", "==", "active"), where("orgId", "==", orgId))),
         ]);
 
         const now = new Date();
@@ -49,9 +53,12 @@ export default function DashboardPage() {
       } finally {
         setLoading(false);
       }
+      }
     };
-    fetchStats();
-  }, []);
+    if (orgId) {
+      fetchStats();
+    }
+  }, [orgId]);
 
   const statCards = [
     {

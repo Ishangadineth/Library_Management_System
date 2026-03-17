@@ -6,6 +6,8 @@ import {
 } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { db, auth } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
+import { encryptData, decryptData } from "@/lib/crypto";
 import { Plus, Trash2, Users, Search, X } from "lucide-react";
 import styles from "./members.module.css";
 
@@ -29,23 +31,38 @@ export default function MembersPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const { orgId } = useAuth();
 
   const fetchMembers = async () => {
-    if (!db) return;
+    if (!db || !orgId) return;
     setLoading(true);
     const q = query(
       collection(db, "users"),
       where("role", "==", "member"),
+      where("orgId", "==", orgId),
       orderBy("name")
     );
     const snap = await getDocs(q);
-    const data = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Member));
+    const data = snap.docs.map((d) => {
+      const fbData = d.data();
+      return {
+        id: d.id,
+        ...fbData,
+        email: decryptData(fbData.email),
+        phone: decryptData(fbData.phone),
+        address: decryptData(fbData.address),
+      } as Member;
+    });
     setMembers(data);
     setFiltered(data);
     setLoading(false);
   };
 
-  useEffect(() => { fetchMembers(); }, []);
+  useEffect(() => {
+    if (orgId) {
+      fetchMembers();
+    }
+  }, [orgId]);
 
   useEffect(() => {
     const term = search.toLowerCase();
@@ -70,10 +87,11 @@ export default function MembersPage() {
       await addDoc(collection(db, "users"), {
         uid: cred.user.uid,
         name: form.name,
-        email: form.email,
-        phone: form.phone,
-        address: form.address,
+        email: encryptData(form.email),
+        phone: encryptData(form.phone),
+        address: encryptData(form.address),
         role: "member",
+        orgId: orgId,
         joinedAt: serverTimestamp(),
       });
       setShowModal(false);

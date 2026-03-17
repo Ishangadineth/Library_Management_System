@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react";
 import {
   collection, getDocs, addDoc, updateDoc, deleteDoc,
-  doc, serverTimestamp, query, orderBy,
+  doc, serverTimestamp, query, orderBy, where
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 import { Plus, Pencil, Trash2, X, BookOpen, Search } from "lucide-react";
 import styles from "./books.module.css";
 
@@ -17,6 +18,7 @@ interface Book {
   totalCopies: number;
   availableCopies: number;
   coverUrl: string;
+  orgId: string;
 }
 
 const emptyForm = {
@@ -33,11 +35,16 @@ export default function BooksPage() {
   const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const { orgId } = useAuth();
 
   const fetchBooks = async () => {
-    if (!db) return;
+    if (!db || !orgId) return;
     setLoading(true);
-    const q = query(collection(db, "books"), orderBy("title"));
+    const q = query(
+      collection(db, "books"),
+      where("orgId", "==", orgId),
+      orderBy("title")
+    );
     const snap = await getDocs(q);
     const data = snap.docs.map((d) => ({ id: d.id, ...d.data() } as Book));
     setBooks(data);
@@ -45,7 +52,11 @@ export default function BooksPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchBooks(); }, []);
+  useEffect(() => {
+    if (orgId) {
+      fetchBooks();
+    }
+  }, [orgId]);
 
   useEffect(() => {
     const term = search.toLowerCase();
@@ -91,6 +102,7 @@ export default function BooksPage() {
       } else {
         await addDoc(collection(db, "books"), {
           ...form,
+          orgId,
           createdAt: serverTimestamp(),
         });
       }
