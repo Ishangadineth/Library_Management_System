@@ -20,7 +20,6 @@ export default function DashboardPage() {
     activeLoans: 0,
     overdueLoans: 0,
   });
-  });
   const [loading, setLoading] = useState(true);
   const { orgId } = useAuth();
 
@@ -37,7 +36,7 @@ export default function DashboardPage() {
 
         const now = new Date();
         let overdue = 0;
-        loansSnap.forEach((doc) => {
+        loansSnap.forEach((doc: any) => {
           const data = doc.data();
           if (data.dueDate && data.dueDate.toDate() < now) overdue++;
         });
@@ -52,7 +51,6 @@ export default function DashboardPage() {
         console.error("Error fetching stats:", err);
       } finally {
         setLoading(false);
-      }
       }
     };
     if (orgId) {
