@@ -109,60 +109,67 @@ export default function CatalogPage({
 
   return (
     <div className={styles.page}>
+      {/* Gradient Header - Similar to Storefront */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <Library size={32} color="var(--primary)" />
-          <div>
-            <h1>{libraryName.toUpperCase()} Library Catalog</h1>
-            <p>Browse books available in this branch</p>
+          <div className={styles.storeIcon}>
+            <Library size={32} />
+          </div>
+          <div className={styles.storeMeta}>
+            <h1>{libraryName.toUpperCase()}</h1>
+            <p>Welcome to our official digital library collection</p>
           </div>
         </div>
       </header>
 
-      <div className={styles.searchContainer}>
+      <div className={styles.contentArea}>
+        {/* Centered Search Bar */}
         <div className={styles.searchWrapper}>
-          <Search size={20} className={styles.searchIcon} />
-          <input
-            type="text"
-            placeholder="Search by title, author, or category..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={styles.searchInput}
-          />
-        </div>
-      </div>
-
-      <main className={styles.main}>
-        {filtered.length === 0 ? (
-          <div className={styles.emptyState}>
-            <BookOpen size={48} color="var(--text-muted)" />
-            <p>No books match your search.</p>
+          <div className={styles.searchBox}>
+            <Search size={20} className={styles.searchIcon} />
+            <input
+              type="text"
+              placeholder="Search for books..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={styles.searchInput}
+            />
           </div>
-        ) : (
-          <div className={styles.grid}>
-            {filtered.map((book) => (
-              <div key={book.id} className={styles.bookCard}>
-                <div className={styles.bookInfo}>
-                  <h3 className={styles.bookTitle}>{book.title}</h3>
-                  <p className={styles.bookAuthor}>by {book.author}</p>
-                  <span className={styles.categoryBadge}>{book.category}</span>
-                </div>
-                
-                <div className={styles.bookStatus}>
-                  <div className={styles.availability}>
-                    <span className={book.availableCopies > 0 ? styles.inStock : styles.outOfStock}>
-                      {book.availableCopies > 0 ? 'Available' : 'Checked Out'}
-                    </span>
-                    <span className={styles.copyCount}>
-                      {book.availableCopies} / {book.totalCopies} copies
-                    </span>
+        </div>
+
+        <main className={styles.main}>
+          {filtered.length === 0 ? (
+            <div className={styles.emptyState}>
+              <BookOpen size={48} color="rgba(0,0,0,0.1)" />
+              <p>No books available in this catalog.</p>
+            </div>
+          ) : (
+            <div className={styles.grid}>
+              {filtered.map((book) => (
+                <div key={book.id} className={styles.card}>
+                  <div className={styles.imagePlaceholder}>
+                    {/* Simplified cover representation */}
+                    <BookOpen size={64} color="rgba(79, 70, 229, 0.4)" />
+                  </div>
+                  <div className={styles.cardMeta}>
+                    <h3>{book.title}</h3>
+                    <p className={styles.author}>by {book.author}</p>
+                    <div className={styles.footerFlex}>
+                       <span className={book.availableCopies > 0 ? styles.inStock : styles.outOfStock}>
+                         {book.availableCopies > 0 ? "Available" : "Checked Out"}
+                       </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </main>
+              ))}
+            </div>
+          )}
+        </main>
+
+        <footer className={styles.footer}>
+          <p>Powered by <strong>Shamod Library System</strong></p>
+        </footer>
+      </div>
     </div>
   );
 }
