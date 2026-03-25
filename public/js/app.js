@@ -141,7 +141,7 @@ const app = {
               <td>${typeBadge}</td>
               <td><strong>${tx.bookTitle}</strong></td>
               <td>${tx.memberName}</td>
-              <td>${new Date(tx.date).toLocaleDateString()}</td>
+              <td>${new Date(tx.date).toLocaleString()}</td>
               <td>${fineHtml}</td>
             </tr>
           `;
@@ -174,7 +174,7 @@ const app = {
           : `<div class="book-placeholder"><i class='bx bx-book'></i></div>`;
 
         grid.innerHTML += `
-          <div class="book-card glass-panel" onclick="app.switchView('books-view')">
+          <div class="book-card glass-panel" onclick="app.showBookDetails('${book.id}')">
             ${coverEl}
             <h4>${book.title}</h4>
             <p>${book.author}</p>
@@ -199,7 +199,7 @@ const app = {
       books.forEach(book => {
         const qrId = `qr-${book.id}`;
         tbody.innerHTML += `
-          <tr>
+          <tr onclick="app.showBookDetails('${book.id}')" style="cursor:pointer">
             <td>
                 <div id="${qrId}" class="qr-small" title="${book.qrCode}"></div>
             </td>
@@ -209,7 +209,7 @@ const app = {
             <td>#${book.batchNumber}</td>
             <td><span class="badge ${book.status}">${book.status}</span></td>
             <td>
-              <button class="btn btn-danger" onclick="app.deleteBook('${book.id}')"><i class='bx bx-trash'></i></button>
+              <button class="btn btn-danger" onclick="event.stopPropagation(); app.deleteBook('${book.id}')"><i class='bx bx-trash'></i></button>
             </td>
           </tr>
         `;
@@ -471,6 +471,77 @@ const app = {
     } else {
       document.body.classList.remove('is-admin');
       loginBtn.innerHTML = "<i class='bx bx-log-in'></i> Login";
+    }
+  },
+
+  async showBookDetails(bookId) {
+    try {
+      const book = await api.getBook(bookId);
+      const history = await api.getBookHistory(bookId);
+
+      this.state.currentBookId = bookId; // For saving notes later
+
+      // Set Info
+      document.getElementById('detail-title').innerText = book.title;
+      document.getElementById('detail-author').innerText = `By ${book.author}`;
+      document.getElementById('detail-status').innerText = book.status;
+      document.getElementById('detail-status').className = `badge ${book.status} mt-2`;
+      document.getElementById('detail-isbn').innerText = book.isbn;
+      document.getElementById('detail-batch').innerText = `#${book.batchNumber}`;
+      document.getElementById('detail-category').innerText = book.category || 'Uncategorized';
+      document.getElementById('detail-publisher').innerText = book.publisher || 'Unknown';
+      document.getElementById('detail-notes').value = book.notes || '';
+
+      // Set Image
+      const preview = document.getElementById('detail-cover-container');
+      preview.innerHTML = book.coverImage 
+        ? `<img src="${book.coverImage}" style="width:100%; border-radius:15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">`
+        : `<div class="book-placeholder" style="height:350px;"><i class='bx bx-book'></i></div>`;
+
+      // Set History
+      const historyBody = document.getElementById('detail-history-body');
+      historyBody.innerHTML = '';
+      if (history.length > 0) {
+        history.forEach(h => {
+          const issueDate = new Date(h.issueDate).toLocaleString();
+          const returnDate = h.returnDate ? new Date(h.returnDate).toLocaleString() : '-';
+          historyBody.innerHTML += `
+            <tr>
+              <td>${h.memberName}</td>
+              <td>${issueDate}</td>
+              <td>${returnDate}</td>
+              <td><span class="badge ${h.status}">${h.status}</span></td>
+            </tr>
+          `;
+        });
+      } else {
+        historyBody.innerHTML = '<tr><td colspan="4" style="text-align:center">No borrowing history found.</td></tr>';
+      }
+
+      // Generate QR
+      document.getElementById('detail-qr-container').innerHTML = '';
+      new QRCode(document.getElementById('detail-qr-container'), {
+        text: book.qrCode || `BOOK-${book.id}`,
+        width: 120, height: 120,
+        colorDark : "#ffffff", colorLight : "transparent",
+      });
+
+      this.showModal('bookDetailModal');
+    } catch (e) {
+      this.showToast(e.message, true);
+    }
+  },
+
+  async saveBookNotes() {
+    const notes = document.getElementById('detail-notes').value;
+    const bookId = this.state.currentBookId;
+    if (!bookId) return;
+
+    try {
+      await api.updateBook(bookId, { notes });
+      this.showToast('Librarian notes saved successfully');
+    } catch (e) {
+      this.showToast(e.message, true);
     }
   }
 };

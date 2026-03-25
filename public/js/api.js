@@ -6,6 +6,10 @@ const api = {
     const res = await fetch(`${API_BASE_URL}/books`);
     return res.json();
   },
+  async getBook(id) {
+    const res = await fetch(`${API_BASE_URL}/books/${id}`);
+    return res.json();
+  },
   async checkIsbnExist(isbn) {
     const res = await fetch(`${API_BASE_URL}/books/check-isbn/${isbn}`);
     return res.json();
@@ -17,6 +21,14 @@ const api = {
       body: JSON.stringify(bookData)
     });
     if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+  async updateBook(id, data) {
+    const res = await fetch(`${API_BASE_URL}/books/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
     return res.json();
   },
   async deleteBook(id) {
@@ -66,6 +78,10 @@ const api = {
       body: JSON.stringify({ bookId })
     });
     if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+  async getBookHistory(bookId) {
+    const res = await fetch(`${API_BASE_URL}/circulation/history/${bookId}`);
     return res.json();
   },
 

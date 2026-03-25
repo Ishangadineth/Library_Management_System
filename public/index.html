@@ -371,6 +371,76 @@
   </div>
 
   <!-- Notification Toast -->
+  <!-- Book Details Modal -->
+  <div id="bookDetailModal" class="modal">
+    <div class="modal-content glass-panel" style="max-width: 800px;">
+      <span class="close" onclick="app.closeModal('bookDetailModal')">&times;</span>
+      
+      <div class="detail-layout flex" style="gap: 30px;">
+        <div class="detail-sidebar" style="width: 250px;">
+          <div id="detail-cover-container"></div>
+          <div id="detail-qr-container" class="qr-small mt-4" style="text-align: center;"></div>
+        </div>
+
+        <div class="detail-main flex-grow" style="max-height: 70vh; overflow-y: auto; padding-right: 15px;">
+          <h2 id="detail-title">Book Title</h2>
+          <p id="detail-author" class="text-muted">By Author Name</p>
+          <div class="badge AVAILABLE mt-2" id="detail-status">Available</div>
+
+          <div class="divider"></div>
+
+          <div class="info-grid grid mt-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+              <small class="text-muted">ISBN</small>
+              <p id="detail-isbn">-</p>
+            </div>
+            <div>
+              <small class="text-muted">Batch</small>
+              <p id="detail-batch">-</p>
+            </div>
+            <div>
+              <small class="text-muted">Category</small>
+              <p id="detail-category">-</p>
+            </div>
+            <div>
+              <small class="text-muted">Publisher</small>
+              <p id="detail-publisher">-</p>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="notes-section mt-4">
+            <h3>Librarian Notes</h3>
+            <textarea id="detail-notes" class="form-control glass-panel mt-2" style="width: 100%; height: 80px; padding: 10px; color: #fff; border: 1px solid var(--border-color);" placeholder="Add special notes about this book..."></textarea>
+            <button class="btn btn-primary mt-2" onclick="app.saveBookNotes()">Save Notes</button>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="history-section mt-4">
+            <h3>Borrowing History</h3>
+            <div class="table-responsive">
+              <table style="font-size: 0.85rem;">
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Issued At</th>
+                    <th>Returned At</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="detail-history-body">
+                  <!-- History will load here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast glass-panel"></div>
 
   <!-- Scripts -->

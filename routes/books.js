@@ -21,6 +21,17 @@ router.get('/', checkDb, async (req, res) => {
   }
 });
 
+// Get a single book
+router.get('/:id', checkDb, async (req, res) => {
+  try {
+    const bookDoc = await db.collection('books').doc(req.params.id).get();
+    if (!bookDoc.exists) return res.status(404).json({ error: 'Book not found' });
+    res.json({ id: bookDoc.id, ...bookDoc.data() });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Check ISBN for duplicates
 router.get('/check-isbn/:isbn', checkDb, async (req, res) => {
   try {
@@ -76,6 +87,17 @@ router.delete('/:id', checkDb, async (req, res) => {
   try {
     await db.collection('books').doc(req.params.id).delete();
     res.json({ message: 'Book deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update a book (e.g., for notes)
+router.patch('/:id', checkDb, async (req, res) => {
+  try {
+    const updates = req.body;
+    await db.collection('books').doc(req.params.id).update(updates);
+    res.json({ message: 'Book updated successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
