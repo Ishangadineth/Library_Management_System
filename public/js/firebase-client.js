@@ -1,12 +1,12 @@
 // Firebase Web App Configuration
-// To make this work, go to Firebase Console (Online) -> Project Settings -> General -> Your Apps -> Web App configuration
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAGdPl_MryyBo8ozgEPQz6EFTyWNU8ikZQ",
+  authDomain: "library-management-syste-2700e.firebaseapp.com",
+  projectId: "library-management-syste-2700e",
+  storageBucket: "library-management-syste-2700e.firebasestorage.app",
+  messagingSenderId: "362679866844",
+  appId: "1:362679866844:web:af26f3a04495e79162ab19",
+  measurementId: "G-VGVYCMKSZG"
 };
 
 // Initialize Firebase
@@ -21,10 +21,17 @@ const loginWithGoogle = () => {
 
 // Auth listener
 auth.onAuthStateChanged(user => {
+    const loginBtn = document.getElementById('login-btn');
     if (user) {
         console.log("Logged in as:", user.displayName);
-        // We will integrate this into our main app.js soon
+        document.body.classList.add('is-firebase-auth');
+        // If it's an admin email, we can auto-grant admin rights here too
+        if(user.email === 'admin@example.com') { // Placeholder for admin logic
+             app.state.isAdmin = true;
+             app.updateAdminUI();
+        }
     } else {
         console.log("No user logged in.");
+        document.body.classList.remove('is-firebase-auth');
     }
 });

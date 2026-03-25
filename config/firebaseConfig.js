@@ -8,7 +8,7 @@ try {
     serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
   } else {
     // Fallback to local file for development
-    serviceAccount = require('./library-management-syste-2700e-firebase-adminsdk-fbsvc-3e5e171272.json');
+    serviceAccount = require('./library-management-syste-2700e-firebase-adminsdk-fbsvc-ecdab4f946.json');
   }
 
   if (!admin.apps.length) {
