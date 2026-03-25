@@ -1,8 +1,8 @@
 const API_BASE = '/api';
 
-let authToken = localStorage.getItem('pos_token') || null;
-let currentBusiness = localStorage.getItem('pos_business') || '';
-let currentRole = localStorage.getItem('pos_role') || 'user';
+let authToken = localStorage.getItem('lib_token') || null;
+let currentLibrary = localStorage.getItem('lib_name') || '';
+let currentRole = localStorage.getItem('lib_role') || 'admin';
 
 // ==== AUTH LOGIC ====
 const authOverlay = document.getElementById('auth-overlay');
@@ -12,7 +12,7 @@ const registerForm = document.getElementById('register-form');
 document.getElementById('switch-to-register').addEventListener('click', () => {
     loginForm.classList.remove('active');
     registerForm.classList.add('active');
-    document.getElementById('auth-subtitle').textContent = "Register a new business";
+    document.getElementById('auth-subtitle').textContent = "Register a new library branch";
 });
 
 document.getElementById('switch-to-login').addEventListener('click', () => {
@@ -35,7 +35,7 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await res.json();
         if(!res.ok) throw new Error(data.error || 'Login failed');
         
-        loginSuccess(data.token, data.business_name, data.role);
+        loginSuccess(data.token, data.library_name, data.role);
     } catch(err) { alert(err.message); }
 });
 
@@ -43,54 +43,53 @@ registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('reg-email').value;
     const password = document.getElementById('reg-password').value;
-    const business_name = document.getElementById('reg-businessName').value;
+    const library_name = document.getElementById('reg-libraryName').value;
     const whatsapp_number = document.getElementById('reg-whatsapp').value;
     
     try {
         const res = await fetch(`${API_BASE}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, business_name, whatsapp_number })
+            body: JSON.stringify({ email, password, library_name, whatsapp_number, role: 'admin' })
         });
         const data = await res.json();
         if(!res.ok) throw new Error(data.error || 'Registration failed');
         
-        loginSuccess(data.token, data.business_name, data.role);
+        loginSuccess(data.token, data.library_name, data.role);
     } catch(err) { alert(err.message); }
 });
 
-function loginSuccess(token, businessName, role = 'user') {
+function loginSuccess(token, libraryName, role = 'admin') {
     authToken = token;
-    currentBusiness = businessName;
+    currentLibrary = libraryName;
     currentRole = role;
-    localStorage.setItem('pos_token', token);
-    localStorage.setItem('pos_business', businessName);
-    localStorage.setItem('pos_role', role);
+    localStorage.setItem('lib_token', token);
+    localStorage.setItem('lib_name', libraryName);
+    localStorage.setItem('lib_role', role);
     checkAuth();
 }
 
 document.getElementById('btn-logout').addEventListener('click', () => {
     authToken = null;
-    currentBusiness = '';
-    currentRole = 'user';
-    localStorage.removeItem('pos_token');
-    localStorage.removeItem('pos_business');
-    localStorage.removeItem('pos_role');
+    currentLibrary = '';
+    currentRole = 'admin';
+    localStorage.removeItem('lib_token');
+    localStorage.removeItem('lib_name');
+    localStorage.removeItem('lib_role');
     checkAuth();
 });
 
 function checkAuth() {
     if (authToken) {
         authOverlay.classList.remove('active');
-        document.getElementById('business-name-display').textContent = currentBusiness;
+        document.getElementById('business-name-display').textContent = currentLibrary;
         
-        if (currentRole === 'admin') {
+        if (currentRole === 'super_admin') {
             document.getElementById('nav-item-admin').style.display = 'block';
         } else {
             document.getElementById('nav-item-admin').style.display = 'none';
         }
         
-        // Re-initialize data
         loadDashboard();
     } else {
         authOverlay.classList.add('active');
@@ -107,18 +106,20 @@ async function fetchAuth(url, options = {}) {
     
     const res = await fetch(url, options);
     if (res.status === 401) {
-        // Unauthorized, logout
         document.getElementById('btn-logout').click();
     }
     return res;
 }
 
 // ==== STATE ====
-let products = [];
-let currentBill = [];
+let books = [];
+let members = [];
+let loans = [];
+let circSelectedBook = null;
+let circSelectedMember = null;
+let circMode = 'issue'; // 'issue' or 'return'
+let currentBookCoverBase64 = null;
 let currentTab = 'dashboard-view';
-let chartInstance = null;
-let currentProductImageBase64 = null;
 
 // ==== DOM ELEMENTS ====
 const clockEl = document.getElementById('clock');
@@ -126,9 +127,9 @@ const navLinks = document.querySelectorAll('.nav-link');
 const views = document.querySelectorAll('.view');
 const pageTitle = document.getElementById('page-title');
 const modalOverlay = document.getElementById('modal-overlay');
-const productModal = document.getElementById('product-modal');
-const invoiceModal = document.getElementById('invoice-modal');
-const adminUserModal = document.getElementById('admin-user-modal');
+
+const bookModal = document.getElementById('book-modal');
+const memberModal = document.getElementById('member-modal');
 
 const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 const sidebar = document.getElementById('sidebar');
@@ -143,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNavigation();
     setupModals();
     
-    // Mobile sidebar toggle
     if (mobileMenuBtn && sidebar && sidebarOverlay) {
         mobileMenuBtn.addEventListener('click', () => {
             sidebar.classList.add('show-sidebar');
@@ -175,163 +175,112 @@ function setupNavigation() {
             pageTitle.textContent = link.querySelector('.link-name').textContent;
             currentTab = target;
             
-            // Close sidebar on mobile after navigation
             if (sidebarOverlay && sidebarOverlay.classList.contains('active')) {
                 sidebar.classList.remove('show-sidebar');
                 sidebarOverlay.classList.remove('active');
             }
             
-            // Load specific view data
             if(target === 'dashboard-view') loadDashboard();
-            if(target === 'inventory-view') loadInventory();
-            if(target === 'pos-view') loadPOS();
-            if(target === 'invoices-view') loadInvoices();
-            if(target === 'reports-view') loadReports();
-            if(target === 'admin-view') loadAdminUsers();
+            if(target === 'books-view') loadBooks();
+            if(target === 'members-view') loadMembers();
+            if(target === 'circulation-view') loadCirculation();
+            if(target === 'loans-view') loadLoans();
+            // Default views will be added for admin-view
         });
     });
-    
-    // ==== MARKETPLACE ====
-    const btnMarketplace = document.getElementById('btn-create-marketplace');
-    if (btnMarketplace) {
-        btnMarketplace.addEventListener('click', async () => {
-            try {
-                const res = await fetchAuth(`${API_BASE}/marketplace/enable`, { method: 'POST' });
-                if (res.ok) {
-                    const domain = window.location.origin;
-                    const url = `${domain}/${encodeURIComponent(currentBusiness)}`;
-                    // Open the marketplace URL in a new window immediately
-                    window.open(url, '_blank');
-                } else {
-                    alert('Failed to enable marketplace. Make sure you have restarted your server.');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Error enabling marketplace. Did you restart the server?');
-            }
-        });
-    }
 }
 
 function setupModals() {
-    document.getElementById('btn-close-modal').addEventListener('click', hideModal);
-    document.getElementById('btn-close-invoice-modal').addEventListener('click', hideModal);
-    document.getElementById('btn-close-admin-modal').addEventListener('click', hideModal);
+    document.getElementById('btn-close-book-modal').addEventListener('click', hideModal);
+    document.getElementById('btn-close-member-modal').addEventListener('click', hideModal);
     
-    // Add product
-    document.getElementById('btn-add-product').addEventListener('click', () => {
-        document.getElementById('product-form').reset();
-        document.getElementById('product-id').value = '';
-        currentProductImageBase64 = null;
-        document.getElementById('product-image-preview').innerHTML = '<span style="color:var(--text-muted);font-size:12px;">+ Add Image</span>';
-        document.getElementById('product-modal-title').textContent = 'Add Product';
-        showModal(productModal);
+    // -- BOOK MODAL --
+    document.getElementById('btn-add-book').addEventListener('click', () => {
+        document.getElementById('book-form').reset();
+        document.getElementById('book-id').value = '';
+        currentBookCoverBase64 = null;
+        document.getElementById('book-image-preview').innerHTML = '<span style="color:var(--text-muted);font-size:12px;">+ Add Cover</span>';
+        document.getElementById('book-modal-title').textContent = 'Register Book';
+        document.getElementById('batch-number-group').style.display = 'none';
+        showModal(bookModal);
     });
 
-    // Handle Image Selection
-    document.getElementById('product-image').addEventListener('change', function(e) {
+    document.getElementById('book-image').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
-        
         const reader = new FileReader();
         reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 400;
-                const MAX_HEIGHT = 400;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-                } else {
-                    if (height > MAX_HEIGHT) {
-                        width *= MAX_HEIGHT / height;
-                        height = MAX_HEIGHT;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                currentProductImageBase64 = dataUrl;
-                document.getElementById('product-image-preview').innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
-            }
-            img.src = event.target.result;
+            currentBookCoverBase64 = event.target.result;
+            document.getElementById('book-image-preview').innerHTML = `<img src="${event.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
         }
         reader.readAsDataURL(file);
     });
 
-    // Handle Product Form
-    document.getElementById('product-form').addEventListener('submit', async (e) => {
+    document.getElementById('book-isbn').addEventListener('input', (e) => {
+        const isbn = e.target.value;
+        const existingBook = books.find(b => b.isbn === isbn);
+        if (existingBook && document.getElementById('book-id').value === '') {
+            document.getElementById('batch-number-group').style.display = 'block';
+            document.getElementById('book-title').value = existingBook.title;
+            document.getElementById('book-author').value = existingBook.author;
+            document.getElementById('book-category').value = existingBook.category;
+            if (existingBook.image) {
+                currentBookCoverBase64 = existingBook.image;
+                document.getElementById('book-image-preview').innerHTML = `<img src="${existingBook.image}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
+            }
+        } else {
+            document.getElementById('batch-number-group').style.display = 'none';
+        }
+    });
+
+    document.getElementById('book-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const id = document.getElementById('product-id').value;
-        const name = document.getElementById('product-name').value;
-        const qty = document.getElementById('product-qty').value;
-        const price = document.getElementById('product-price').value;
-        
         const payload = { 
-            name, 
-            quantity: parseInt(qty), 
-            price: parseFloat(price),
-            image: currentProductImageBase64
+            title: document.getElementById('book-title').value, 
+            author: document.getElementById('book-author').value, 
+            isbn: document.getElementById('book-isbn').value, 
+            category: document.getElementById('book-category').value, 
+            batch_number: document.getElementById('book-batch-no').value,
+            image: currentBookCoverBase64
         };
-        const method = id ? 'PUT' : 'POST';
-        const url = id ? `${API_BASE}/products/${id}` : `${API_BASE}/products`;
-        
         try {
-            await fetchAuth(url, {
-                method,
+            await fetchAuth(`${API_BASE}/books`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             hideModal();
-            loadInventory();
-        } catch (err) {
-            console.error(err);
-            alert('Error saving product');
-        }
+            loadBooks();
+        } catch (err) { alert('Error saving book'); }
     });
 
-    // Print Receipt logic
-    document.getElementById('btn-print-receipt').addEventListener('click', () => {
-        window.print();
+    // -- MEMBER MODAL --
+    document.getElementById('btn-add-member').addEventListener('click', () => {
+        document.getElementById('member-form').reset();
+        document.getElementById('member-id').value = '';
+        document.getElementById('member-modal-title').textContent = 'Register Member';
+        // Auto gen simple ID
+        document.getElementById('member-card-id').value = 'MEM-' + Date.now().toString().slice(-6);
+        showModal(memberModal);
     });
-    
-    // Admin User Edit Form
-    document.getElementById('admin-user-form').addEventListener('submit', async (e) => {
+
+    document.getElementById('member-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const id = document.getElementById('admin-user-id').value;
-        const business_name = document.getElementById('admin-business-name').value;
-        const email = document.getElementById('admin-email').value;
-        const whatsapp_number = document.getElementById('admin-whatsapp').value;
-        const password = document.getElementById('admin-password').value;
-        const marketplace_enabled = document.getElementById('admin-marketplace-enabled').checked;
-        
-        const payload = { business_name, email, whatsapp_number, marketplace_enabled };
-        if (password) {
-            payload.password = password;
-        }
-
+        const payload = { 
+            name: document.getElementById('member-name').value, 
+            phone: document.getElementById('member-phone').value, 
+            address: document.getElementById('member-address').value, 
+            member_card_id: document.getElementById('member-card-id').value
+        };
         try {
-            await fetchAuth(`${API_BASE}/admin/users/${id}`, {
-                method: 'PUT',
+            await fetchAuth(`${API_BASE}/members`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             hideModal();
-            loadAdminUsers();
-        } catch (err) {
-            console.error(err);
-            alert('Error updating user');
-        }
+            loadMembers();
+        } catch (err) { alert('Error saving member'); }
     });
 }
 
@@ -346,571 +295,335 @@ function hideModal() {
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
 }
 
-// ==== UTILS ====
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'LKR' }).format(amount).replace('LKR', 'Rs.');
-}
-
-function exportToCSV(filename, rows) {
-    let processRow = function(row) {
-        let finalVal = '';
-        for (let j = 0; j < row.length; j++) {
-            let innerValue = row[j] === null ? '' : row[j].toString();
-            if (row[j] instanceof Date) { innerValue = row[j].toLocaleString(); }
-            let result = innerValue.replace(/"/g, '""');
-            if (result.search(/("|,|\n)/g) >= 0) result = '"' + result + '"';
-            if (j > 0) finalVal += ',';
-            finalVal += result;
-        }
-        return finalVal + '\n';
-    };
-
-    let csvFile = '';
-    for (let i = 0; i < rows.length; i++) {
-        csvFile += processRow(rows[i]);
-    }
-
-    let blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
-    let link = document.createElement("a");
-    if (link.download !== undefined) {
-        let url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-}
-
 // ==== DASHBOARD ====
 async function loadDashboard() {
-    if (!authToken) return;
     try {
         const res = await fetchAuth(`${API_BASE}/dashboard`);
         const stats = await res.json();
         
-        document.getElementById('dash-bills-today').textContent = stats.totalBillsToday;
-        document.getElementById('dash-bills-month').textContent = stats.totalBillsMonth;
-        document.getElementById('dash-income-today').textContent = formatCurrency(stats.dailyIncome);
-        document.getElementById('dash-income-month').textContent = formatCurrency(stats.monthlyIncome);
-        document.getElementById('dash-total-products').textContent = stats.totalProducts;
-        document.getElementById('dash-low-stock').textContent = stats.lowStockProducts;
+        document.getElementById('dash-total-books').textContent = stats.totalBooks;
+        document.getElementById('dash-total-members').textContent = stats.totalMembers;
+        document.getElementById('dash-active-loans').textContent = stats.activeLoans;
+        
+        // Load recent loans
+        await loadRecentLoans();
+    } catch (err) { console.error(err); }
+}
 
-        // Load low stock table
-        const resAlerts = await fetchAuth(`${API_BASE}/dashboard/low-stock`);
-        const alerts = await resAlerts.json();
-        const tbody = document.querySelector('#low-stock-table tbody');
+async function loadRecentLoans() {
+    try {
+        const res = await fetchAuth(`${API_BASE}/loans`);
+        const loansList = await res.json();
+        const tbody = document.querySelector('#recent-loans-table tbody');
         tbody.innerHTML = '';
         
-        alerts.forEach(item => {
+        loansList.slice(0, 5).forEach(l => {
             const tr = document.createElement('tr');
-            let nameHTML = `<td>${item.name}</td>`;
-            if (currentRole === 'admin') {
-                nameHTML = `<td>${item.name} <div style="font-size:11px;color:var(--primary);margin-top:2px;">[${item.owner_name}]</div></td>`;
-            }
-            
             tr.innerHTML = `
-                ${nameHTML}
-                <td class="text-danger">${item.quantity}</td>
-                <td>${formatCurrency(item.price)}</td>
+                <td>${l.member_id?.name || 'Unknown'}</td>
+                <td>${l.book_id?.title || 'Unknown'}</td>
+                <td>${l.issue_date}</td>
+                <td><span style="color:${l.status === 'active' ? 'orange' : 'green'};">${l.status.toUpperCase()}</span></td>
             `;
             tbody.appendChild(tr);
         });
-    } catch (err) {
-        console.error(err);
-    }
+    } catch(err) {}
 }
 
-// ==== INVENTORY ====
-let adminInventoryFilter = null;
-
-async function loadInventory() {
+// ==== BOOKS ====
+async function loadBooks() {
     try {
-        const res = await fetchAuth(`${API_BASE}/products`);
-        products = await res.json();
-        const tbody = document.querySelector('#inventory-table tbody');
+        const res = await fetchAuth(`${API_BASE}/books`);
+        books = await res.json();
+        const tbody = document.querySelector('#books-table tbody');
         tbody.innerHTML = '';
         
-        // Handle admin inventory filtering
-        let productsToRender = products;
-        const filterBadge = document.getElementById('inventory-filter-badge');
-        if (currentRole === 'admin' && adminInventoryFilter) {
-            productsToRender = products.filter(p => p.owner_name === adminInventoryFilter);
-            document.getElementById('inventory-filter-name').textContent = adminInventoryFilter;
-            filterBadge.style.display = 'flex';
-        } else {
-            filterBadge.style.display = 'none';
-        }
-        
-        productsToRender.forEach(p => {
-            const imgHtml = p.image ? `<img src="${p.image}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:8px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#64748b;">No Img</div>`;
+        books.forEach(b => {
             const tr = document.createElement('tr');
-            
-            let nameDisplay = `<span>${p.name}</span>`;
-            if (currentRole === 'admin') {
-                nameDisplay = `<div><span>${p.name}</span><div style="font-size:11px;color:var(--primary);margin-top:2px;">[${p.owner_name}]</div></div>`;
-            }
+            const statusBadge = `<span style="padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600; background: ${b.status === 'available' ? '#dcfce7' : '#fee2e2'}; color: ${b.status === 'available' ? '#166534' : '#991b1b'}">${b.status.toUpperCase()}</span>`;
             
             tr.innerHTML = `
-                <td style="display:flex;align-items:center;gap:12px;">${imgHtml} ${nameDisplay}</td>
-                <td class="${p.quantity <= 10 ? 'text-danger' : ''}">${p.quantity}</td>
-                <td>${formatCurrency(p.price)}</td>
+                <td><strong>${b.title}</strong><br><small class="text-muted">${b.category || 'No Category'}</small></td>
+                <td>${b.author || 'Unknown'}</td>
+                <td>${b.isbn} <br> <small class="text-muted">${b.batch_number ? 'Batch: ' + b.batch_number : ''}</small></td>
+                <td>${statusBadge}</td>
                 <td>
-                    <button class="btn btn-outline btn-icon-only edit-btn" data-id="${p.id}"><i class='bx bx-edit'></i></button>
-                    <button class="btn btn-danger btn-icon-only del-btn" data-id="${p.id}"><i class='bx bx-trash'></i></button>
+                    <button class="btn btn-outline btn-icon-only text-primary" data-id="${b.id}" disabled><i class='bx bx-edit'></i></button>
+                    <button class="btn btn-danger btn-icon-only" data-id="${b.id}" disabled><i class='bx bx-trash'></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
-        
-    } catch (err) {
-        console.error(err);
-    }
+    } catch (err) { console.error(err); }
 }
 
-document.getElementById('btn-clear-inventory-filter').addEventListener('click', () => {
-    adminInventoryFilter = null;
-    loadInventory();
-});
-
-// Event Delegation for Edit and Delete buttons
-document.querySelector('#inventory-table tbody').addEventListener('click', (e) => {
-    const editBtn = e.target.closest('.edit-btn');
-    if (editBtn) {
-        editProduct(editBtn.dataset.id);
-        return;
-    }
-    
-    const delBtn = e.target.closest('.del-btn');
-    if (delBtn) {
-        deleteProduct(delBtn.dataset.id);
-    }
-});
-
-function editProduct(id) {
-    const p = products.find(prod => prod.id == id);
-    if(p) {
-        document.getElementById('product-id').value = p.id;
-        document.getElementById('product-name').value = p.name;
-        document.getElementById('product-qty').value = p.quantity;
-        document.getElementById('product-price').value = p.price;
+// ==== MEMBERS ====
+async function loadMembers() {
+    try {
+        const res = await fetchAuth(`${API_BASE}/members`);
+        members = await res.json();
+        const tbody = document.querySelector('#members-table tbody');
+        tbody.innerHTML = '';
         
-        currentProductImageBase64 = p.image || null;
-        if (p.image) {
-            document.getElementById('product-image-preview').innerHTML = `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
-        } else {
-            document.getElementById('product-image-preview').innerHTML = '<span style="color:var(--text-muted);font-size:12px;">+ Add Image</span>';
+        members.forEach(m => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${m.name}</strong></td>
+                <td>${m.phone} <br> <small class="text-muted">${m.address || ''}</small></td>
+                <td><code>${m.member_card_id}</code></td>
+                <td>
+                    <button class="btn btn-outline btn-icon-only text-primary" data-id="${m.id}" disabled><i class='bx bx-edit'></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) { console.error(err); }
+}
+
+// ==== LOANS & FINES ====
+async function loadLoans() {
+    const statusFilter = document.getElementById('filter-loan-status').value;
+    try {
+        const res = await fetchAuth(`${API_BASE}/loans`);
+        let loansList = await res.json();
+        
+        if (statusFilter !== 'all') {
+            loansList = loansList.filter(l => l.status === statusFilter); // Needs overdue logic enhancement
         }
         
-        document.getElementById('product-modal-title').textContent = 'Edit Product';
-        showModal(productModal);
-    }
+        const tbody = document.querySelector('#loans-table tbody');
+        tbody.innerHTML = '';
+        
+        loansList.forEach(l => {
+            const tr = document.createElement('tr');
+            
+            // Calculate overdue Fine (Rs. 10 per day overdue)
+            let fine = 0;
+            if (l.status === 'active') {
+                const due = new Date(l.due_date);
+                const today = new Date();
+                if (today > due) {
+                    const diffTime = Math.abs(today - due);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    fine = diffDays * 10;
+                }
+            } else if (l.fine_amount) {
+                fine = l.fine_amount;
+            }
+
+            tr.innerHTML = `
+                <td><strong>${l.member_id?.name || 'N/A'}</strong><br><small class="text-muted">${l.member_id?.member_card_id || ''}</small></td>
+                <td><strong>${l.book_id?.title || 'N/A'}</strong><br><small class="text-muted">ISBN: ${l.book_id?.isbn || ''}</small></td>
+                <td>Issued: ${l.issue_date}<br><small class="text-danger">Due: ${l.due_date}</small></td>
+                <td style="font-weight:bold; color: ${fine > 0 ? 'var(--danger)' : 'var(--text-main)'};">Rs. ${fine.toFixed(2)}</td>
+                <td>
+                    <span style="padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600; background: ${l.status === 'returned' ? '#dcfce7' : '#fef08a'}; color: ${l.status === 'returned' ? '#166534' : '#854d0e'}">${l.status.toUpperCase()}</span>
+                </td>
+                <td>
+                    ${l.status === 'active' ? `<button class="btn btn-primary btn-sm btn-return-loan" data-id="${l.id}">Return Book</button>` : `<span class="text-muted text-sm">Returned on ${l.return_date||'-'}</span>`}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.querySelectorAll('.btn-return-loan').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                 if(confirm('Confirm book return?')) {
+                     const loanId = e.target.dataset.id;
+                     await fetchAuth(`${API_BASE}/loans/return/${loanId}`, { method: 'POST' });
+                     loadLoans();
+                 }
+            });
+        });
+    } catch(err) { console.error(err); }
 }
 
-async function deleteProduct(id) {
-    if(confirm('Are you sure you want to delete this product?')) {
-        try {
-            await fetchAuth(`${API_BASE}/products/${id}`, { method: 'DELETE' });
-            loadInventory();
-        } catch (err) { console.error(err); }
-    }
-}
-
-document.getElementById('btn-export-inventory').addEventListener('click', () => {
-    const csvData = [['Item Name', 'Quantity', 'Price']];
-    products.forEach(p => csvData.push([p.name, p.quantity, p.price]));
-    exportToCSV('products.csv', csvData);
+document.getElementById('filter-loan-status').addEventListener('change', loadLoans);
+document.getElementById('btn-clear-loan-filters').addEventListener('click', () => {
+    document.getElementById('filter-loan-status').value = 'all';
+    loadLoans();
 });
 
-// ==== POS (NEW BILL) ====
-async function loadPOS() {
-    currentBill = [];
-    updateBillUI();
-    document.getElementById('pos-search-input').value = '';
+// ==== CIRCULATION (POS style) ====
+async function loadCirculation() {
+    circSelectedBook = null;
+    circSelectedMember = null;
+    updateCirculationUI();
     
-    try {
-        const res = await fetchAuth(`${API_BASE}/products`);
-        products = await res.json();
-        renderPOSProducts(products);
-    } catch (err) {
-        console.error(err);
-    }
+    // Ensure data is cached
+    if (books.length === 0) await fetchAuth(`${API_BASE}/books`).then(r => r.json()).then(data => books = data);
+    if (members.length === 0) await fetchAuth(`${API_BASE}/members`).then(r => r.json()).then(data => members = data);
+    
+    renderCirculationBooks(books.filter(b => b.status === 'available'));
 }
 
-function renderPOSProducts(productArray) {
-    const grid = document.getElementById('pos-products-grid');
+function renderCirculationBooks(bookList) {
+    const grid = document.getElementById('circ-books-grid');
     grid.innerHTML = '';
     
-    productArray.forEach(p => {
+    bookList.forEach(b => {
         const div = document.createElement('div');
         div.className = 'pos-product-card';
-        const imgStyle = p.image ? `background-image:url('${p.image}');background-size:cover;background-position:center;` : `background:#e2e8f0;`;
+        const imgStyle = b.image ? `background-image:url('${b.image}');background-size:cover;background-position:center;` : `background:var(--secondary);`;
         div.innerHTML = `
-            <div style="width:100%;height:100px;border-radius:8px;margin-bottom:12px;${imgStyle}"></div>
-            <h4>${p.name}</h4>
-            <div class="price">${formatCurrency(p.price)}</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Stock: ${p.quantity}</div>
+            <div style="width:100%;height:120px;border-radius:8px;margin-bottom:12px;${imgStyle}"></div>
+            <h4 style="font-size:14px; margin-bottom:4px; leading:1.2;">${b.title}</h4>
+            <div style="font-size:12px;color:var(--text-muted);">ISBN: ${b.isbn}</div>
         `;
-        div.addEventListener('click', () => addToBill(p));
+        div.addEventListener('click', () => { circSelectedBook = b; updateCirculationUI(); });
         grid.appendChild(div);
     });
 }
 
-document.getElementById('pos-search-input').addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(term));
-    renderPOSProducts(filtered);
-});
-
-function addToBill(product) {
-    if (product.quantity <= 0) {
-        alert('Product out of stock!');
-        return;
-    }
+function renderCirculationMembers(memberList) {
+    const grid = document.getElementById('circ-books-grid');
+    grid.innerHTML = '';
     
-    const existing = currentBill.find(item => item.id === product.id);
-    if (existing) {
-        if (existing.quantity >= product.quantity) {
-             alert('Cannot add more than available stock!');
-             return;
-        }
-        existing.quantity++;
-    } else {
-        currentBill.push({
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: 1,
-            maxQty: product.quantity
-        });
-    }
-    updateBillUI();
-}
-
-function updateBillQuantity(id, change) {
-    const item = currentBill.find(i => i.id === id);
-    if (item) {
-        const newQty = item.quantity + change;
-        if (newQty > 0 && newQty <= item.maxQty) {
-            item.quantity = newQty;
-        } else if (newQty === 0) {
-            currentBill = currentBill.filter(i => i.id !== id);
-        } else {
-             alert('Cannot exceed available stock!');
-        }
-        updateBillUI();
-    }
-}
-
-function updateBillUI() {
-    const itemsContainer = document.getElementById('pos-bill-items');
-    itemsContainer.innerHTML = '';
-    let total = 0;
-    
-    currentBill.forEach(item => {
-        const amount = item.price * item.quantity;
-        total += amount;
-        
+    memberList.forEach(m => {
         const div = document.createElement('div');
-        div.className = 'bill-item';
+        div.className = 'pos-product-card';
         div.innerHTML = `
-            <div class="bill-item-details">
-                <h4>${item.name}</h4>
-                <p>${formatCurrency(item.price)} x ${item.quantity}</p>
+            <div style="width:100%;height:60px;border-radius:8px;margin-bottom:12px;background:var(--bg-body);display:flex;align-items:center;justify-content:center;color:var(--text-main);">
+                <i class='bx bx-user' style="font-size:24px;"></i>
             </div>
-            <div class="bill-item-actions">
-                <div class="qty-control">
-                    <button class="qty-btn" onclick="updateBillQuantity('${item.id}', -1)">-</button>
-                    <span>${item.quantity}</span>
-                    <button class="qty-btn" onclick="updateBillQuantity('${item.id}', 1)">+</button>
-                </div>
-                <div class="item-total">${formatCurrency(amount)}</div>
-            </div>
+            <h4 style="font-size:14px; margin-bottom:4px;">${m.name}</h4>
+            <div style="font-size:12px;color:var(--text-muted);">${m.member_card_id}</div>
         `;
-        itemsContainer.appendChild(div);
+        div.addEventListener('click', () => { circSelectedMember = m; updateCirculationUI(); });
+        grid.appendChild(div);
     });
-    
-    document.getElementById('pos-total-amount').textContent = formatCurrency(total);
 }
 
-document.getElementById('btn-submit-bill').addEventListener('click', async () => {
-    if (currentBill.length === 0) {
-        alert('Bill is empty!');
-        return;
-    }
+// Circulation Tabs handler
+document.querySelectorAll('#circulation-view .tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('#circulation-view .tab-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        if (e.target.dataset.report === 'circ-books') {
+            const filterStatus = circMode === 'issue' ? 'available' : 'loaned';
+            renderCirculationBooks(books.filter(b => b.status === filterStatus));
+        } else {
+            renderCirculationMembers(members);
+        }
+    });
+});
+
+// Circulation Search/Scan Handler
+document.getElementById('circulation-scan-input').addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
     
-    let total = currentBill.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const activeTab = document.querySelector('#circulation-view .tab-btn.active').dataset.report;
     
-    const payload = {
-        items: currentBill,
-        total_amount: total
-    };
-    
-    try {
-        const res = await fetchAuth(`${API_BASE}/invoices`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        
-        if (!res.ok) throw new Error('Failed to create invoice');
-        
-        const data = await res.json();
-        
-        // Print
-        showInvoicePrintout(data.invoice);
-        
-        // Clear bill
-        currentBill = [];
-        updateBillUI();
-        
-        // Reload products cache
-        fetchAuth(`${API_BASE}/products`).then(r => r.json()).then(p => products = p);
-        
-    } catch (err) {
-        console.error(err);
-        alert('Error saving bill');
+    if (activeTab === 'circ-books') {
+        const filterStatus = circMode === 'issue' ? 'available' : 'loaned';
+        renderCirculationBooks(books.filter(b => b.status === filterStatus && (b.isbn.toLowerCase().includes(query) || b.title.toLowerCase().includes(query))));
+    } else {
+        renderCirculationMembers(members.filter(m => m.member_card_id.toLowerCase().includes(query) || m.name.toLowerCase().includes(query)));
     }
 });
 
-function showInvoicePrintout(invoice) {
-    document.getElementById('receipt-no').textContent = invoice.invoice_number;
-    document.getElementById('receipt-date').textContent = invoice.date;
-    document.getElementById('receipt-time').textContent = invoice.time;
+function updateCirculationUI() {
+    const memberLabel = document.getElementById('checkout-member-name');
+    const bookLabel = document.getElementById('checkout-book-title');
+    const issueBtn = document.getElementById('btn-issue-book');
+    const statusLabel = document.getElementById('circ-loan-status');
+    const dueDateInput = document.getElementById('checkout-due-date');
     
-    const tbody = document.querySelector('#receipt-items tbody');
-    tbody.innerHTML = '';
+    memberLabel.textContent = circSelectedMember ? `${circSelectedMember.name} (${circSelectedMember.member_card_id})` : 'None Selected';
+    bookLabel.textContent = circSelectedBook ? `${circSelectedBook.title} (${circSelectedBook.isbn})` : 'None Selected';
     
-    let total = 0;
-    invoice.items.forEach(item => {
-        const amt = item.price * item.quantity;
-        total += amt;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.product_name || item.name}</td>
-            <td>${item.quantity}</td>
-            <td>${item.price}</td>
-            <td>${amt}</td>
-        `;
-        tbody.appendChild(tr);
-    });
+    // Auto set due date to 14 days from now if not set
+    if (!dueDateInput.value) {
+        const d = new Date();
+        d.setDate(d.getDate() + 14);
+        dueDateInput.value = d.toISOString().split('T')[0];
+    }
     
-    document.getElementById('receipt-total-amount').textContent = total.toFixed(2);
-    
-    // Automatically open modal and print dialog as per rules
-    showModal(invoiceModal);
-    setTimeout(() => {
-        window.print();
-    }, 500);
+    if (circMode === 'issue') {
+        issueBtn.textContent = 'Issue Book';
+        issueBtn.className = 'btn btn-primary btn-block btn-lg';
+        statusLabel.textContent = 'Ready to Issue';
+        dueDateInput.parentElement.style.display = 'block';
+        
+        if (circSelectedMember && circSelectedBook) {
+            issueBtn.disabled = false;
+        } else {
+            issueBtn.disabled = true;
+        }
+    } else {
+        // Handle Return Mode UI
+        issueBtn.textContent = 'Check-in Return';
+        issueBtn.className = 'btn btn-success btn-block btn-lg';
+        statusLabel.textContent = 'Check-in Returns';
+        dueDateInput.parentElement.style.display = 'none';
+        
+        // Disable Member requirement for fast returns, just need book
+        if (circSelectedBook) {
+            issueBtn.disabled = false;
+        } else {
+            issueBtn.disabled = true;
+        }
+    }
 }
 
-// ==== INVOICES ====
-let invoicesList = [];
+document.getElementById('btn-return-mode').addEventListener('click', (e) => {
+    if (circMode === 'issue') {
+        circMode = 'return';
+        e.target.textContent = 'Switch to Issue Mode';
+        renderCirculationBooks(books.filter(b => b.status === 'loaned'));
+    } else {
+        circMode = 'issue';
+        e.target.textContent = 'Switch to Check-in Mode';
+        renderCirculationBooks(books.filter(b => b.status === 'available'));
+    }
+    circSelectedBook = null;
+    updateCirculationUI();
+});
 
-async function loadInvoices() {
-    const dateFilter = document.getElementById('filter-date').value;
-    const monthFilter = document.getElementById('filter-month').value;
-    
-    let url = `${API_BASE}/invoices`;
-    if (dateFilter) url += `?date=${dateFilter}`;
-    else if (monthFilter) url += `?month=${monthFilter}`;
-    
-    try {
-        const res = await fetchAuth(url);
-        invoicesList = await res.json();
-        const tbody = document.querySelector('#invoices-table tbody');
-        tbody.innerHTML = '';
+document.getElementById('btn-issue-book').addEventListener('click', async () => {
+    if (circMode === 'issue') {
+        if (!circSelectedMember || !circSelectedBook) return alert('Select both member and book');
         
-        invoicesList.forEach(inv => {
-            const tr = document.createElement('tr');
-            let adminActions = '';
-            let invDisplay = inv.invoice_number;
-            if (currentRole === 'admin') {
-                invDisplay += `<div style="font-size:11px;color:var(--primary);margin-top:2px;">[${inv.owner_name}]</div>`;
-                adminActions = `<button class="btn btn-danger btn-icon-only delete-invoice-btn" style="margin-left: 4px;" data-id="${inv.id}"><i class='bx bx-trash'></i></button>`;
+        const payload = {
+            member_id: circSelectedMember.id,
+            book_id: circSelectedBook.id,
+            due_date: document.getElementById('checkout-due-date').value
+        };
+        
+        try {
+            await fetchAuth(`${API_BASE}/loans/issue`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            alert('Book Issued successfully!');
+            circSelectedBook = null;
+            document.getElementById('circulation-scan-input').value = '';
+            
+            // Refetch caches
+            await loadCirculation(); 
+        } catch (err) { alert('Failed to issue book'); }
+    } else {
+        // Find active loan for this book
+        try {
+            const listRes = await fetchAuth(`${API_BASE}/loans`);
+            const allLoans = await listRes.json();
+            const activeLoanForBook = allLoans.find(l => l.book_id && l.book_id._id === circSelectedBook.id && l.status === 'active');
+            
+            if (!activeLoanForBook) {
+                 alert('No active loan found for this book?! Ensure data integrity.');
+                 return;
             }
             
-            tr.innerHTML = `
-                <td>${invDisplay}</td>
-                <td>${inv.date}</td>
-                <td>${inv.time}</td>
-                <td style="font-weight:bold">${formatCurrency(inv.total_amount)}</td>
-                <td>
-                    <button class="btn btn-outline btn-icon-only view-invoice-btn" data-id="${inv.id}"><i class='bx bx-show'></i></button>
-                    <button class="btn btn-primary btn-icon-only print-invoice-btn" data-id="${inv.id}"><i class='bx bx-printer'></i></button>
-                    ${adminActions}
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        document.querySelectorAll('.view-invoice-btn, .print-invoice-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const id = e.currentTarget.dataset.id;
-                try {
-                    const res = await fetchAuth(`${API_BASE}/invoices/${id}`);
-                    const inv = await res.json();
-                    showInvoicePrintout(inv);
-                } catch(err) { console.error(err); }
-            });
-        });
-        
-        document.querySelectorAll('.delete-invoice-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                if(confirm('Are you sure you want to delete this invoice? (This will restock the inventory automatically)')) {
-                    const id = e.currentTarget.dataset.id;
-                    try {
-                        await fetchAuth(`${API_BASE}/invoices/${id}`, { method: 'DELETE' });
-                        loadInvoices();
-                    } catch(err) { console.error(err); }
-                }
-            });
-        });
-        
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-document.getElementById('filter-date').addEventListener('change', () => {
-    document.getElementById('filter-month').value = '';
-    loadInvoices();
-});
-document.getElementById('filter-month').addEventListener('change', () => {
-    document.getElementById('filter-date').value = '';
-    loadInvoices();
-});
-document.getElementById('btn-clear-filters').addEventListener('click', () => {
-    document.getElementById('filter-date').value = '';
-    document.getElementById('filter-month').value = '';
-    loadInvoices();
-});
-
-document.getElementById('btn-export-invoices').addEventListener('click', () => {
-    const csvData = [['Invoice Number', 'Date', 'Time', 'Total Amount']];
-    invoicesList.forEach(i => csvData.push([i.invoice_number, i.date, i.time, i.total_amount]));
-    exportToCSV('invoices.csv', csvData);
-});
-
-// ==== REPORTS ====
-let currentReportMode = 'sales';
-
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.tab-btn').forEach(td => td.classList.remove('active'));
-        e.target.classList.add('active');
-        currentReportMode = e.target.getAttribute('data-report');
-        loadReports();
-    });
-});
-
-async function loadReports() {
-    const thead = document.querySelector('#reports-table document, #reports-table thead');
-    const tbody = document.querySelector('#reports-table tbody');
-    tbody.innerHTML = '';
-    
-    try {
-        if (currentReportMode === 'sales') {
-            thead.innerHTML = `<tr><th>Date</th><th>Total Sales</th></tr>`;
-            const res = await fetchAuth(`${API_BASE}/reports/sales`);
-            const data = await res.json();
-            data.forEach(row => {
-               const tr = document.createElement('tr');
-               tr.innerHTML = `<td>${row.date}</td><td>${formatCurrency(row.total_sales)}</td>`;
-               tbody.appendChild(tr);
-            });
-        } else {
-            thead.innerHTML = `<tr><th>Product Name</th><th>Quantity Sold</th><th>Revenue</th></tr>`;
-            const res = await fetchAuth(`${API_BASE}/reports/product-sales`);
-            const data = await res.json();
-            data.forEach(row => {
-               const tr = document.createElement('tr');
-               tr.innerHTML = `<td>${row.product_name}</td><td>${row.quantity_sold}</td><td>${formatCurrency(row.revenue)}</td>`;
-               tbody.appendChild(tr);
-            });
-        }
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-// ==== ADMIN VIEW ====
-let adminUsersList = [];
-
-async function loadAdminUsers() {
-    try {
-        const res = await fetchAuth(`${API_BASE}/admin/users`);
-        adminUsersList = await res.json();
-        
-        const tbody = document.querySelector('#admin-users-table tbody');
-        tbody.innerHTML = '';
-        
-        adminUsersList.forEach(user => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${user.business_name}</td>
-                <td>${user.email}</td>
-                <td>${user.marketplace_enabled ? '<span class="text-success" style="color:var(--success);font-weight:600;">Enabled</span>' : '<span class="text-muted">Disabled</span>'}</td>
-                <td>
-                    <button class="btn btn-outline btn-icon-only view-user-inventory-btn" data-id="${user.id}" title="View Inventory"><i class='bx bx-box'></i></button>
-                    <button class="btn btn-outline btn-icon-only admin-edit-btn" data-id="${user.id}" title="Edit User"><i class='bx bx-edit'></i></button>
-                    <button class="btn btn-danger btn-icon-only admin-del-btn" data-id="${user.id}" title="Delete User"><i class='bx bx-trash'></i></button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-// Event Delegation for Admin Users Edit/Delete
-document.querySelector('#admin-users-table tbody').addEventListener('click', async (e) => {
-    const viewInvBtn = e.target.closest('.view-user-inventory-btn');
-    if (viewInvBtn) {
-        const id = viewInvBtn.dataset.id;
-        const user = adminUsersList.find(u => u.id === id);
-        if (user) {
-            // Set filter and switch tabs
-            adminInventoryFilter = user.business_name;
-            
-            navLinks.forEach(l => l.classList.remove('active'));
-            document.querySelector('[data-target="inventory-view"]').classList.add('active');
-            
-            views.forEach(v => v.classList.remove('active'));
-            document.getElementById('inventory-view').classList.add('active');
-            
-            pageTitle.textContent = "Inventory";
-            currentTab = 'inventory-view';
-            loadInventory();
-        }
-        return;
-    }
-
-    const editBtn = e.target.closest('.admin-edit-btn');
-    if (editBtn) {
-        const id = editBtn.dataset.id;
-        const user = adminUsersList.find(u => u.id === id);
-        if (user) {
-            document.getElementById('admin-user-id').value = user.id;
-            document.getElementById('admin-business-name').value = user.business_name;
-            document.getElementById('admin-email').value = user.email;
-            document.getElementById('admin-whatsapp').value = user.whatsapp_number || '';
-            document.getElementById('admin-password').value = ''; // Always clear password field
-            document.getElementById('admin-marketplace-enabled').checked = user.marketplace_enabled;
-            showModal(adminUserModal);
-        }
-        return;
-    }
-    
-    const delBtn = e.target.closest('.admin-del-btn');
-    if (delBtn) {
-        if(confirm('Are you sure you want to permanently delete this user and ALL their data (products, invoices)?')) {
-            try {
-                await fetchAuth(`${API_BASE}/admin/users/${delBtn.dataset.id}`, { method: 'DELETE' });
-                loadAdminUsers();
-            } catch (err) { console.error(err); }
+            await fetchAuth(`${API_BASE}/loans/return/${activeLoanForBook.id}`, { method: 'POST' });
+            alert('Book Checked-in Successfully!');
+            circSelectedBook = null;
+            document.getElementById('circulation-scan-input').value = '';
+            await loadCirculation();
+        } catch(err) {
+            console.error(err);
+            alert('Failed to return book');
         }
     }
 });

@@ -28,6 +28,8 @@ const connectDB = async () => {
 
 // -- SCHEMAS --
 
+// -- SCHEMAS --
+
 const UserSchema = new mongoose.Schema({
     email: { 
         type: String, 
@@ -37,68 +39,71 @@ const UserSchema = new mongoose.Schema({
         get: (v) => v ? decrypt(v) : v
     },
     password: { type: String, required: true },
-    business_name: { type: String, required: true },
+    library_name: { type: String, required: true },
     whatsapp_number: { type: String },
-    marketplace_enabled: { type: Boolean, default: false },
-    role: { type: String, default: 'user' }
+    role: { 
+        type: String, 
+        enum: ['super_admin', 'admin', 'librarian'], 
+        default: 'admin' 
+    }
 }, {
     toJSON: { getters: true },
     toObject: { getters: true }
 });
 
-// Since we'll hash passwords on registration and initial setup directly,
-// we will avoid a pre-save hook to prevent double-hashing when updating users without changing passwords.
+const BookSchema = new mongoose.Schema({
+    user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    title: { type: String, required: true },
+    author: { type: String },
+    isbn: { type: String },
+    publisher: { type: String },
+    category: { type: String },
+    batch_number: { type: String },
+    image: { type: String },
+    status: { type: String, enum: ['available', 'loaned'], default: 'available' }
+});
 
-const ProductSchema = new mongoose.Schema({
+const MemberSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     name: { type: String, required: true },
-    quantity: { type: Number, default: 0 },
-    price: { type: Number, default: 0.0 },
-    image: { type: String }
+    address: { type: String },
+    phone: { type: String },
+    photo_url: { type: String },
+    member_card_id: { type: String, unique: true }
 });
 
-const InvoiceItemSchema = new mongoose.Schema({
-    product_name: { type: String, required: true },
-    quantity: { type: Number, required: true },
-    price: { type: Number, required: true },
-    subtotal: { type: Number, required: true }
-});
-
-const InvoiceSchema = new mongoose.Schema({
+const LoanSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    invoice_number: { type: String, required: true },
-    date: { type: String, required: true }, // Format: YYYY-MM-DD
-    time: { type: String, required: true }, // Format: HH:MM
-    total_amount: { type: Number, default: 0.0 },
-    items: [InvoiceItemSchema]
+    member_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Member', required: true },
+    book_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Book', required: true },
+    issue_date: { type: String, required: true },
+    due_date: { type: String, required: true },
+    return_date: { type: String }, 
+    fine_amount: { type: Number, default: 0.0 },
+    status: { type: String, enum: ['active', 'returned'], default: 'active' }
 });
 
 // -- MODELS --
 const User = mongoose.model('User', UserSchema);
-const Product = mongoose.model('Product', ProductSchema);
-const Invoice = mongoose.model('Invoice', InvoiceSchema);
+const Book = mongoose.model('Book', BookSchema);
+const Member = mongoose.model('Member', MemberSchema);
+const Loan = mongoose.model('Loan', LoanSchema);
 
-// Create default admin user
+// Create default Super Admin user "ids"
 const initializeDatabase = async () => {
     try {
-        const adminEmailObj = encrypt('admin'); // For lookup
-        const adminExists = await User.findOne({ email: adminEmailObj }).collation({ locale: 'en', strength: 2 });
+        const idsEmailEnc = encrypt('ids@library.com'); 
+        const idsExists = await User.findOne({ email: idsEmailEnc });
         
-        // Also checks legacy unencrypted 'Admin' just in case
-        const legacyAdmin = await User.findOne({ email: 'Admin' });
-
-        if (!adminExists && !legacyAdmin) {
-            const hashedPassword = await bcrypt.hash('Mynameis1234', 10);
+        if (!idsExists) {
+            const hashedPassword = await bcrypt.hash('ids1234', 10);
             await User.create({
-                email: 'admin', // The setter handles encryption and lowercasing
+                email: 'ids@library.com',
                 password: hashedPassword,
-                business_name: 'Admin Portal',
-                role: 'admin'
+                library_name: 'Super Admin Portal',
+                role: 'super_admin'
             });
-            console.log('Admin user created securely.');
-        } else if (legacyAdmin && legacyAdmin.role !== 'admin') {
-            await User.updateOne({ email: 'Admin' }, { role: 'admin' });
-            console.log('Admin role updated for existing admin user.');
+            console.log('Super Admin "ids" created.');
         }
     } catch (err) {
         console.error('Error initializing default user:', err.message);
@@ -109,6 +114,7 @@ module.exports = {
     connectDB,
     initializeDatabase,
     User,
-    Product,
-    Invoice
+    Book,
+    Member,
+    Loan
 };
