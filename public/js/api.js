@@ -6,6 +6,10 @@ const api = {
     const res = await fetch(`${API_BASE_URL}/books`);
     return res.json();
   },
+  async checkIsbnExist(isbn) {
+    const res = await fetch(`${API_BASE_URL}/books/check-isbn/${isbn}`);
+    return res.json();
+  },
   async addBook(bookData) {
     const res = await fetch(`${API_BASE_URL}/books`, {
       method: 'POST',
@@ -38,6 +42,10 @@ const api = {
   async deleteMember(id) {
     const res = await fetch(`${API_BASE_URL}/members/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+  async getMemberHistory(id) {
+    const res = await fetch(`${API_BASE_URL}/members/${id}/history`);
     return res.json();
   },
 

@@ -1,465 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina - Library System</title>
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Boxicons for modern icons -->
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Library Management System (Pro)</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Boxicons -->
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <!-- Sidebar -->
+  <nav class="sidebar glass-panel">
+    <div class="logo">
+      <i class='bx bx-brain'></i>
+      <span class="logo-name">LMS Pro</span>
+    </div>
+    <ul class="nav-links">
+      <li>
+        <a href="#" class="active" data-target="dashboard-view">
+          <i class='bx bx-grid-alt'></i>
+          <span class="link-name">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" data-target="books-view">
+          <i class='bx bx-book-open'></i>
+          <span class="link-name">Books Inventory</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" data-target="members-view">
+          <i class='bx bx-group'></i>
+          <span class="link-name">Members</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" data-target="circulation-view">
+          <i class='bx bx-transfer'></i>
+          <span class="link-name">Circulation</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" data-target="reports-view">
+          <i class='bx bx-bar-chart-alt-2'></i>
+          <span class="link-name">Reports</span>
+        </a>
+      </li>
+    </ul>
+    <div class="user-info">
+      <img src="https://ui-avatars.com/api/?name=Admin+User&background=6c5ce7&color=fff" alt="Admin">
+      <div>
+        <h4>Admin</h4>
+        <p>Librarian Mode</p>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <section class="main-content">
     
-    <!-- Authentication Overlay -->
-    <div id="auth-overlay" class="auth-overlay active">
-        <div class="auth-box">
-            <div class="auth-header">
-                <h2>Lumina Library System</h2>
-                <p id="auth-subtitle">Login to your account or register a new library branch</p>
-            </div>
-            
-            <form id="login-form" class="auth-form active">
-                <div class="form-group">
-                    <label>Email / Username</label>
-                    <input type="text" id="login-email" class="form-control" required placeholder="Email or 'admin'">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="login-password" class="form-control" required placeholder="Password">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Login</button>
-                <div class="auth-switch">
-                    Don't have an account? <span id="switch-to-register">Register Library</span>
-                </div>
-            </form>
-            
-            <form id="register-form" class="auth-form">
-                <div class="form-group">
-                    <label>Library Name</label>
-                    <input type="text" id="reg-libraryName" class="form-control" required placeholder="Central Library">
-                </div>
-                <div class="form-group">
-                    <label>WhatsApp Number</label>
-                    <input type="tel" id="reg-whatsapp" class="form-control" required placeholder="e.g. +94711234567">
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="reg-email" class="form-control" required placeholder="you@domain.com">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="reg-password" class="form-control" required placeholder="Strong password">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Register</button>
-                <div class="auth-switch">
-                    Already have an account? <span id="switch-to-login">Login</span>
-                </div>
-            </form>
-        </div>
-    </div>
+    <header class="topbar glass-panel">
+      <div class="search-box">
+        <i class='bx bx-search'></i>
+        <input type="text" id="global-search" placeholder="Search everywhere...">
+      </div>
+      <div class="topbar-actions">
+        <span id="live-clock">00:00:00</span>
+        <i class='bx bx-bell'></i>
+        <i class='bx bx-cog'></i>
+      </div>
+    </header>
 
-    <!-- Application Wrapper (hidden until auth) -->
-    <div id="app-wrapper" class="app-wrapper">
-        <div id="sidebar-overlay" class="sidebar-overlay"></div>
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar" id="sidebar">
-        <div class="logo-container">
-            <i class='bx bx-library icon'></i>
-            <span class="logo-name">Lumina LMS</span>
-        </div>
-        <ul class="nav-list">
-            <li>
-                <a href="#" class="nav-link active" data-target="dashboard-view">
-                    <i class='bx bx-grid-alt icon'></i>
-                    <span class="link-name">Dashboard</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-target="circulation-view">
-                    <i class='bx bx-transfer icon'></i>
-                    <span class="link-name">Circulation</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-target="books-view">
-                    <i class='bx bx-book icon'></i>
-                    <span class="link-name">Books Catalog</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-target="members-view">
-                    <i class='bx bx-group icon'></i>
-                    <span class="link-name">Members</span>
-                </a>
-            </li>
-            <li>
-                <a href="#" class="nav-link" data-target="loans-view">
-                    <i class='bx bx-receipt icon'></i>
-                    <span class="link-name">Loans & Fines</span>
-                </a>
-            </li>
-            <li id="nav-item-admin" style="display:none; margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
-                <a href="#" class="nav-link" data-target="admin-view">
-                    <i class='bx bx-shield-quarter icon'></i>
-                    <span class="link-name">Library Config</span>
-                </a>
-            </li>
-        </ul>
-    </aside>
-
-    <!-- Main Content Area -->
-    <main class="main-content">
-        <!-- Header -->
-        <header class="top-header">
-            <div class="header-title" style="display: flex; align-items: center; gap: 12px;">
-                <button id="mobile-menu-btn" class="btn-icon-only d-none-desktop" style="background:none; border:none; font-size: 28px; cursor:pointer; color: var(--text-main); margin-left: -5px; display: none;">
-                    <i class='bx bx-menu'></i>
-                </button>
-                <h1 id="page-title">Dashboard</h1>
-            </div>
-            <div class="header-right">
-                <button class="btn btn-outline" id="btn-create-marketplace" style="margin-right:12px;"><i class='bx bx-globe'></i> OPAC Catalog</button>
-                <div class="time-display" id="clock">00:00 AM</div>
-                <div class="user-profile">
-                    <span id="business-name-display" style="font-weight:600;margin-right:12px;">Admin</span>
-                    <img src="https://ui-avatars.com/api/?name=Lib&background=4f46e5&color=fff" alt="User">
-                    <button id="btn-logout" class="btn btn-outline btn-sm" style="margin-left: 10px; padding: 6px 12px; font-size:12px;"><i class='bx bx-log-out'></i></button>
-                </div>
-            </div>
-        </header>
-
-        <!-- Views Container -->
-        <div class="views-container">
-            <!-- Dashboard View -->
-            <section id="dashboard-view" class="view active">
-                <div class="dashboard-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class='bx bx-book-reader'></i></div>
-                        <div class="stat-details">
-                            <h3>Active Loans</h3>
-                            <p class="stat-value" id="dash-active-loans">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon danger"><i class='bx bx-time-five'></i></div>
-                        <div class="stat-details">
-                            <h3>Overdue Books</h3>
-                            <p class="stat-value" id="dash-overdue-loans">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon income"><i class='bx bx-money'></i></div>
-                        <div class="stat-details">
-                            <h3>Fines Collected</h3>
-                            <p class="stat-value" id="dash-fines-collected">Rs. 0.00</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class='bx bx-transfer'></i></div>
-                        <div class="stat-details">
-                            <h3>Issued Today</h3>
-                            <p class="stat-value" id="dash-issued-today">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class='bx bx-book'></i></div>
-                        <div class="stat-details">
-                            <h3>Total Books</h3>
-                            <p class="stat-value" id="dash-total-books">0</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class='bx bx-group'></i></div>
-                        <div class="stat-details">
-                            <h3>Total Members</h3>
-                            <p class="stat-value" id="dash-total-members">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-tables">
-                    <div class="table-card">
-                        <div class="card-header">
-                            <h2>Recent Transactions</h2>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="data-table" id="recent-loans-table">
-                                <thead>
-                                    <tr>
-                                        <th>Member Name</th>
-                                        <th>Book Title</th>
-                                        <th>Issue Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Populated via JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Circulation View -->
-            <section id="circulation-view" class="view">
-                <div class="pos-layout">
-                    <!-- Left: Books & Search -->
-                    <div class="pos-products-area">
-                        <h2>Select Member & Book</h2>
-                        <div class="pos-search" style="margin-bottom: 10px;">
-                            <i class='bx bx-scan'></i>
-                            <input type="text" id="circulation-scan-input" placeholder="Scan Book ISBN or Member ID...">
-                        </div>
-                        
-                        <div class="tabs-container">
-                            <div class="tabs-header">
-                                <button class="tab-btn active" data-report="circ-books">Books Catalog</button>
-                                <button class="tab-btn" data-report="circ-members">Members List</button>
-                            </div>
-                            <div class="tabs-body" style="padding: 10px 0;">
-                                <div class="pos-products-grid" id="circ-books-grid">
-                                    <!-- Populated via JS -->
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Right: Current Action -->
-                    <div class="pos-bill-area">
-                        <div class="bill-header">
-                            <h2>Fast Check-out</h2>
-                            <p id="circ-loan-status">Ready to Issue</p>
-                        </div>
-                        
-                        <div class="checkout-selections" style="padding: 15px; background: var(--bg-body); border-radius: 8px; margin-bottom: 15px;">
-                            <div style="margin-bottom: 15px;">
-                                <label style="font-size: 12px; color: var(--text-muted); font-weight: 600;">SELECTED MEMBER</label>
-                                <div id="checkout-member-name" style="font-weight: 600; font-size: 16px; margin-top: 5px;">None Selected</div>
-                            </div>
-                            <div>
-                                <label style="font-size: 12px; color: var(--text-muted); font-weight: 600;">SELECTED BOOK</label>
-                                <div id="checkout-book-title" style="font-weight: 600; font-size: 16px; margin-top: 5px;">None Selected</div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Return Due Date</label>
-                            <input type="date" id="checkout-due-date" class="form-control">
-                        </div>
-
-                        <div class="bill-summary" style="margin-top: auto;">
-                            <button class="btn btn-primary btn-block btn-lg" id="btn-issue-book" disabled>Issue Book</button>
-                            <button class="btn btn-outline btn-block" id="btn-return-mode" style="margin-top: 10px;">Switch to Check-in Mode</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Books Catalog View -->
-            <section id="books-view" class="view">
-                <div class="view-header" style="flex-wrap: wrap; gap: 15px;">
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <h2>Books Catalog</h2>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-outline" id="btn-export-books"><i class='bx bx-download'></i> Export CSV</button>
-                        <button class="btn btn-primary" id="btn-add-book"><i class='bx bx-plus'></i> Add Book</button>
-                    </div>
-                </div>
-                <!-- Search Bar -->
-                <div class="form-group">
-                    <input type="text" id="books-searchbar" class="form-control" placeholder="Search by ISBN, Title, or Author...">
-                </div>
-                
-                <div class="table-card">
-                    <div class="table-responsive">
-                        <table class="data-table" id="books-table">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Author</th>
-                                    <th>ISBN / Batch No</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Populated via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Members View -->
-            <section id="members-view" class="view">
-                <div class="view-header" style="flex-wrap: wrap; gap: 15px;">
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <h2>Member Management</h2>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-primary" id="btn-add-member"><i class='bx bx-user-plus'></i> Add Member</button>
-                    </div>
-                </div>
-                <div class="table-card">
-                    <div class="table-responsive">
-                        <table class="data-table" id="members-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Phone / Address</th>
-                                    <th>Member ID</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Populated via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Loans & Fines View -->
-            <section id="loans-view" class="view">
-                <div class="view-header">
-                    <h2>Loans & Fines</h2>
-                    <div class="header-actions">
-                        <input type="date" id="filter-loan-date" class="form-control" title="Filter by issue date">
-                        <select id="filter-loan-status" class="form-control" style="width: auto;">
-                            <option value="all">All Status</option>
-                            <option value="active">Active Only</option>
-                            <option value="overdue">Overdue</option>
-                            <option value="returned">Returned</option>
-                        </select>
-                        <button class="btn btn-secondary" id="btn-clear-loan-filters">Clear</button>
-                    </div>
-                </div>
-                <div class="table-card">
-                    <div class="table-responsive">
-                        <table class="data-table" id="loans-table">
-                            <thead>
-                                <tr>
-                                    <th>Member</th>
-                                    <th>Book</th>
-                                    <th>Issue/Due Date</th>
-                                    <th>Fine (Rs)</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Populated via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Admin Setup View -->
-            <section id="admin-view" class="view">
-                <div class="view-header">
-                    <h2>Library Configuration</h2>
-                </div>
-                <div class="table-card">
-                    <div class="table-responsive">
-                        <table class="data-table" id="admin-users-table">
-                            <thead>
-                                <tr>
-                                    <th>Library Name / Admin</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Populated via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-    <!-- Modals -->
-    <div class="modal-overlay" id="modal-overlay">
+    <div class="views-container">
+      
+      <!-- Dashboard View -->
+      <div id="dashboard-view" class="view active">
+        <h2 class="view-title">Dashboard Overview</h2>
         
-        <!-- Book Modal -->
-        <div class="modal" id="book-modal">
-            <div class="modal-header">
-                <h3 id="book-modal-title">Register Book</h3>
-                <button class="close-btn" id="btn-close-book-modal"><i class='bx bx-x'></i></button>
+        <div class="stats-grid">
+          <div class="stat-card glass-panel">
+            <div class="stat-icon"><i class='bx bx-book-heart'></i></div>
+            <div class="stat-info">
+              <h3>Total Books</h3>
+              <h2 id="stat-total-books">0</h2>
             </div>
-            <div class="modal-body">
-                <form id="book-form">
-                    <input type="hidden" id="book-id">
-                    <div class="form-group" style="text-align:center;">
-                        <input type="file" id="book-image" accept="image/*" style="display:none;">
-                        <div id="book-image-preview" onclick="document.getElementById('book-image').click()" style="width:100px; height:150px; border:2px dashed var(--border); border-radius:12px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:var(--secondary);">
-                            <span style="color:var(--text-muted);font-size:12px;">+ Add Cover</span>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>ISBN (Scan Barcode)</label>
-                        <input type="text" id="book-isbn" class="form-control" placeholder="Scan or type ISBN" autofocus required>
-                    </div>
-                    <div class="form-group" id="batch-number-group" style="display:none; border-left: 3px solid var(--primary); padding-left: 10px;">
-                        <label>Duplicate Detected: Entry Batch Number</label>
-                        <input type="text" id="book-batch-no" class="form-control" placeholder="e.g. Copy-2, Batch-B">
-                    </div>
-                    <div class="form-group">
-                        <label>Title</label>
-                        <input type="text" id="book-title" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Author</label>
-                        <input type="text" id="book-author" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Category</label>
-                        <input type="text" id="book-category" class="form-control" placeholder="e.g. Fiction, Science">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block">Save Book</button>
-                </form>
+          </div>
+          <div class="stat-card glass-panel">
+            <div class="stat-icon"><i class='bx bx-user-check'></i></div>
+            <div class="stat-info">
+              <h3>Total Members</h3>
+              <h2 id="stat-total-members">0</h2>
+            </div>
+          </div>
+          <div class="stat-card glass-panel">
+            <div class="stat-icon"><i class='bx bx-refresh'></i></div>
+            <div class="stat-info">
+              <h3>Active Loans</h3>
+              <h2 id="stat-active-loans">0</h2>
+            </div>
+          </div>
+        </div>
+
+        <div class="analytics-row flex mt-4">
+            <div class="stat-panel glass-panel w-50 mr-2">
+                <h3>Most Popular Books</h3>
+                <ul id="top-books-list" class="styled-list"></ul>
+            </div>
+            <div class="stat-panel glass-panel w-50 ml-2">
+                <h3>Top Active Members</h3>
+                <ul id="top-members-list" class="styled-list"></ul>
             </div>
         </div>
 
-        <!-- Member Modal -->
-        <div class="modal" id="member-modal">
-            <div class="modal-header">
-                <h3 id="member-modal-title">Register Member</h3>
-                <button class="close-btn" id="btn-close-member-modal"><i class='bx bx-x'></i></button>
-            </div>
-            <div class="modal-body">
-                <form id="member-form">
-                    <input type="hidden" id="member-id">
-                    <!-- Photo upload can be implemented similarly -->
-                    <div class="form-group">
-                        <label>Full Name</label>
-                        <input type="text" id="member-name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Phone Number</label>
-                        <input type="tel" id="member-phone" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Address</label>
-                        <input type="text" id="member-address" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label>Member ID (Auto-Generated if blank)</label>
-                        <input type="text" id="member-card-id" class="form-control" placeholder="Optional Custom ID / Scan Card">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block">Save Member</button>
-                </form>
-            </div>
+        <div class="recent-transactions glass-panel mt-4">
+          <h3>Recent Transactions</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Item</th>
+                  <th>Member</th>
+                  <th>Date</th>
+                  <th>Status/Fine</th>
+                </tr>
+              </thead>
+              <tbody id="recent-transactions-tbody">
+              </tbody>
+            </table>
+          </div>
         </div>
+      </div>
+
+      <!-- Books View -->
+      <div id="books-view" class="view d-none">
+        <div class="view-header">
+          <h2 class="view-title">Library Inventory</h2>
+          <button class="btn btn-primary" onclick="app.showModal('addBookModal')">
+            <i class='bx bx-plus-circle'></i> Add New Book
+          </button>
+        </div>
+        
+        <div class="books-table glass-panel mt-4">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>QR/Cover</th>
+                  <th>Title</th>
+                  <th>Info</th>
+                  <th>ISBN</th>
+                  <th>Batch</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="books-tbody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Members View -->
+      <div id="members-view" class="view d-none">
+        <div class="view-header">
+          <h2 class="view-title">Member List</h2>
+          <button class="btn btn-primary" onclick="app.showModal('addMemberModal')">
+            <i class='bx bx-user-plus'></i> New Member
+          </button>
+        </div>
+
+        <div class="members-grid mt-4" id="members-list-grid">
+          <!-- Member cards will be injected here -->
+        </div>
+      </div>
+
+      <!-- Member Details / History View -->
+      <div id="member-detail-view" class="view d-none">
+          <button class="btn btn-link" onclick="app.switchView('members-view')">
+              <i class='bx bx-arrow-back'></i> Back to Members
+          </button>
+          <div class="detail-container glass-panel mt-2">
+              <div class="detail-header">
+                  <div id="member-profile-info"></div>
+                  <div id="member-qr-large"></div>
+              </div>
+              <hr class="divider">
+              <h3>Member Transaction History</h3>
+              <div class="table-responsive">
+                  <table class="history-table">
+                      <thead>
+                          <tr>
+                              <th>Date</th>
+                              <th>Book</th>
+                              <th>Action</th>
+                              <th>Fine</th>
+                          </tr>
+                      </thead>
+                      <tbody id="member-history-tbody"></tbody>
+                  </table>
+              </div>
+          </div>
+      </div>
+
+      <!-- Circulation View -->
+      <div id="circulation-view" class="view d-none">
+        <h2 class="view-title">Circulation Desk</h2>
+        
+        <div class="circulation-grid">
+          <div class="issue-panel glass-panel">
+            <div class="panel-header">
+                <i class='bx bx-log-out-circle icon-bg'></i>
+                <h3>Issue (Checkout)</h3>
+            </div>
+            <form id="issueBookForm">
+              <div class="form-group">
+                <label>Select Member</label>
+                <select id="issueMemberId" required></select>
+              </div>
+              <div class="form-group">
+                <label>Scan/Select Book</label>
+                <select id="issueBookId" required></select>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 mt-2">Submit Loan Request</button>
+            </form>
+          </div>
+
+          <div class="return-panel glass-panel">
+            <div class="panel-header">
+                <i class='bx bx-log-in-circle icon-bg success-fade'></i>
+                <h3>Return (Check-in)</h3>
+            </div>
+            <form id="returnBookForm">
+              <div class="form-group">
+                <label>Scan/Select Borrowed Book</label>
+                <select id="returnBookId" required></select>
+              </div>
+              <button type="submit" class="btn btn-success w-100 mt-2">Process Return</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports View -->
+      <div id="reports-view" class="view d-none">
+          <h2 class="view-title">Analytics & Reports</h2>
+          <div class="reports-grid stats-grid">
+              <div class="report-card glass-panel">
+                  <h3>Inventory Value</h3>
+                  <p>Check the total estimated value and category distribution.</p>
+                  <button class="btn btn-primary mt-2">Export CSV</button>
+              </div>
+              <div class="report-card glass-panel">
+                  <h3>Fine Revenue</h3>
+                  <p>Daily, weekly and monthly fine collection reports.</p>
+                  <button class="btn btn-primary mt-2">Export PDF</button>
+              </div>
+          </div>
+      </div>
 
     </div>
+  </section>
 
-    <script src="/app.js"></script>
+  <!-- Modals -->
+  <div id="addBookModal" class="modal">
+    <div class="modal-content glass-panel">
+      <span class="close" onclick="app.closeModal('addBookModal')">&times;</span>
+      <h2>Inventory Entry</h2>
+      <form id="addBookForm">
+        <div class="input-grid">
+          <div class="form-group">
+            <label>ISBN (Scan barcode)</label>
+            <input type="text" id="bookIsbn" onkeyup="app.checkIsbnExist(this.value)" required placeholder="e.g. 978...">
+          </div>
+          <div class="form-group" id="batch-field-container">
+            <label>Batch Number</label>
+            <input type="number" id="bookBatch" value="1" required>
+            <small id="isbn-hint" class="d-none">Existing books found. Please use unique Batch #</small>
+          </div>
+          <div class="form-group">
+            <label>Book Title</label>
+            <input type="text" id="bookTitle" required>
+          </div>
+          <div class="form-group">
+            <label>Author Name</label>
+            <input type="text" id="bookAuthor" required>
+          </div>
+          <div class="form-group">
+            <label>Publisher</label>
+            <input type="text" id="bookPublisher">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="bookCategory" placeholder="e.g. Fiction, Science">
+          </div>
+          <div class="form-group full-width">
+            <label>Cover Image URL (Optional)</label>
+            <input type="url" id="bookCover">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-4">Register in System</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="addMemberModal" class="modal">
+    <div class="modal-content glass-panel">
+      <span class="close" onclick="app.closeModal('addMemberModal')">&times;</span>
+      <h2>Member Registration</h2>
+      <form id="addMemberForm">
+        <div class="input-grid">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="memberName" required>
+          </div>
+          <div class="form-group">
+            <label>Card ID (Scan/Enter)</label>
+            <input type="text" id="memberCardId" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="memberPhone" required>
+          </div>
+          <div class="form-group">
+            <label>Profile Image URL</label>
+            <input type="url" id="memberPhoto">
+          </div>
+          <div class="form-group full-width">
+            <label>Street Address</label>
+            <input type="text" id="memberAddress" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-4">Create Membership</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast glass-panel"></div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

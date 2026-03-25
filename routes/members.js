@@ -21,10 +21,26 @@ router.get('/', checkDb, async (req, res) => {
   }
 });
 
+// GET member history
+router.get('/:id/history', checkDb, async (req, res) => {
+  try {
+    const loanSnapshot = await db.collection('circulation')
+      .where('memberId', '==', req.params.id)
+      .get();
+    const history = [];
+    loanSnapshot.forEach(doc => {
+      history.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(history);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Add a new member
 router.post('/', checkDb, async (req, res) => {
   try {
-    const { name, phone, address, memberCardId } = req.body;
+    const { name, phone, address, memberCardId, photoUrl } = req.body;
     
     // Check if Member Card ID already exists
     const query = await db.collection('members').where('memberCardId', '==', memberCardId).get();
@@ -37,7 +53,9 @@ router.post('/', checkDb, async (req, res) => {
       phone,
       address,
       memberCardId,
-      createdAt: new Date().toISOString()
+      photoUrl: photoUrl || '',
+      createdAt: new Date().toISOString(),
+      qrCode: `MEMBER-${memberCardId}`
     };
 
     const docRef = await db.collection('members').add(newMember);

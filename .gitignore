@@ -1,0 +1,13 @@
+node_modules
+.env
+serviceAccountKey.json
+*.json
+# Except package.json and vercel.json
+!package.json
+!vercel.json
+!library-management-syste-2700e-firebase-adminsdk-fbsvc-3e5e171272.json
+# Wait, I SHOULD ignore that specific JSON too.
+# Actually I'll just ignore all JSONs except specifically allowed ones.
+!package.json
+!package-lock.json
+!vercel.json

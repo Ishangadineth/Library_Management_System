@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../config/firebaseConfig');
 
-// Middleware to check if db is ready
 const checkDb = (req, res, next) => {
   if (!db) return res.status(500).json({ error: 'Database not initialized' });
   next();
@@ -22,10 +21,25 @@ router.get('/', checkDb, async (req, res) => {
   }
 });
 
+// Check ISBN for duplicates
+router.get('/check-isbn/:isbn', checkDb, async (req, res) => {
+  try {
+    const query = await db.collection('books').where('isbn', '==', req.params.isbn).get();
+    if (query.empty) {
+      return res.json({ exists: false });
+    }
+    const existingBooks = [];
+    query.forEach(doc => existingBooks.push(doc.data()));
+    res.json({ exists: true, count: query.size, books: existingBooks });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Add a new book
 router.post('/', checkDb, async (req, res) => {
   try {
-    const { isbn, title, author, category, batchNumber, coverImage } = req.body;
+    const { isbn, title, author, category, batchNumber, coverImage, publisher } = req.body;
     
     // Check if same ISBN and Batch exists
     const query = await db.collection('books')
@@ -42,10 +56,12 @@ router.post('/', checkDb, async (req, res) => {
       title,
       author,
       category,
-      batchNumber,
+      publisher: publisher || '',
+      batchNumber: batchNumber || '1',
       coverImage: coverImage || '',
-      status: 'Available', // Available, Loaned, Lost
-      createdAt: new Date().toISOString()
+      status: 'Available', 
+      createdAt: new Date().toISOString(),
+      qrCode: `BOOK-${isbn}-${batchNumber}` // Unique QR content
     };
 
     const docRef = await db.collection('books').add(newBook);
