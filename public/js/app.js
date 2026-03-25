@@ -53,9 +53,18 @@ const app = {
     });
 
     // Login/Logout
-    document.getElementById('login-btn').addEventListener('click', () => {
+    document.getElementById('login-btn')?.addEventListener('click', () => {
         if(this.state.isAdmin) this.handleLogout();
         else this.handleLogin();
+    });
+
+    // Notifications & Settings
+    document.getElementById('notif-btn')?.addEventListener('click', () => {
+        this.showToast('You have no new notifications');
+    });
+    
+    document.getElementById('settings-btn')?.addEventListener('click', () => {
+        this.showToast('Settings panel is under maintenance');
     });
   },
 

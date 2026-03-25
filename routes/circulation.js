@@ -130,13 +130,16 @@ router.get('/history/:bookId', checkDb, async (req, res) => {
   try {
     const historySnapshot = await db.collection('circulation')
       .where('bookId', '==', req.params.bookId)
-      .orderBy('issueDate', 'desc')
       .get();
     
     const history = [];
     historySnapshot.forEach(doc => {
       history.push({ id: doc.id, ...doc.data() });
     });
+
+    // Sort in JS instead of Firestore to avoid index requirement
+    history.sort((a, b) => new Date(b.issueDate) - new Date(a.issueDate));
+
     res.json(history);
   } catch (error) {
     res.status(500).json({ error: error.message });
