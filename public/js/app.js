@@ -3,9 +3,11 @@ const app = {
     books: [],
     members: [],
     currentUser: null,
+    isAdmin: false,
   },
   
   async init() {
+    this.checkLogin();
     this.bindEvents();
     this.startClock();
     await this.loadDashboard();
@@ -48,6 +50,12 @@ const app = {
     // Global Search
     document.getElementById('global-search').addEventListener('input', (e) => {
         this.handleGlobalSearch(e.target.value);
+    });
+
+    // Login/Logout
+    document.getElementById('login-btn').addEventListener('click', () => {
+        if(this.state.isAdmin) this.handleLogout();
+        else this.handleLogin();
     });
   },
 
@@ -407,25 +415,63 @@ const app = {
   },
 
   handleGlobalSearch(query) {
-      query = query.toLowerCase();
-      
-      // Filter Table rows
-      const rows = document.querySelectorAll('tbody tr');
-      rows.forEach(row => {
-          row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
-      });
+    query = query.toLowerCase();
+    
+    // Filter Table rows
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+    });
 
-      // Filter Dashboard Books
-      const bookCards = document.querySelectorAll('.book-card');
-      bookCards.forEach(card => {
-          card.style.display = card.innerText.toLowerCase().includes(query) ? '' : 'none';
-      });
+    // Filter Dashboard Books
+    const bookCards = document.querySelectorAll('.book-card');
+    bookCards.forEach(card => {
+        card.style.display = card.innerText.toLowerCase().includes(query) ? '' : 'none';
+    });
 
-      // Filter Member Cards
-      const memberCards = document.querySelectorAll('.member-card');
-      memberCards.forEach(card => {
-          card.style.display = card.innerText.toLowerCase().includes(query) ? '' : 'none';
-      });
+    // Filter Member Cards
+    const memberCards = document.querySelectorAll('.member-card');
+    memberCards.forEach(card => {
+        card.style.display = card.innerText.toLowerCase().includes(query) ? '' : 'none';
+    });
+  },
+
+  handleLogin() {
+    const password = prompt("Enter Admin Password:");
+    if (password === 'admin') {
+      this.state.isAdmin = true;
+      localStorage.setItem('libraryAdmin', 'true');
+      this.updateAdminUI();
+      this.showToast('Logged in as Administrator');
+    } else {
+      this.showToast('Invalid credentials', true);
+    }
+  },
+
+  handleLogout() {
+    this.state.isAdmin = false;
+    localStorage.removeItem('libraryAdmin');
+    this.updateAdminUI();
+    this.showToast('Logged out');
+    this.switchView('dashboard-view');
+  },
+
+  checkLogin() {
+    if (localStorage.getItem('libraryAdmin') === 'true') {
+      this.state.isAdmin = true;
+      setTimeout(() => this.updateAdminUI(), 100);
+    }
+  },
+
+  updateAdminUI() {
+    const loginBtn = document.getElementById('login-btn');
+    if (this.state.isAdmin) {
+      document.body.classList.add('is-admin');
+      loginBtn.innerHTML = "<i class='bx bx-log-out'></i> Logout";
+    } else {
+      document.body.classList.remove('is-admin');
+      loginBtn.innerHTML = "<i class='bx bx-log-in'></i> Login";
+    }
   }
 };
 

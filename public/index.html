@@ -44,26 +44,26 @@
           <span class="link-name">Books Inventory</span>
         </a>
       </li>
-      <li>
+      <li class="admin-only">
         <a href="#" data-target="members-view">
           <i class='bx bx-group'></i>
           <span class="link-name">Members</span>
         </a>
       </li>
-      <li>
+      <li class="admin-only">
         <a href="#" data-target="circulation-view">
           <i class='bx bx-transfer'></i>
           <span class="link-name">Circulation</span>
         </a>
       </li>
-      <li>
+      <li class="admin-only">
         <a href="#" data-target="reports-view">
           <i class='bx bx-bar-chart-alt-2'></i>
           <span class="link-name">Reports</span>
         </a>
       </li>
     </ul>
-    <div class="user-info">
+    <div class="user-info admin-only">
       <img src="https://ui-avatars.com/api/?name=Admin+User&background=6c5ce7&color=fff" alt="Admin">
       <div>
         <h4>Admin</h4>
@@ -95,9 +95,9 @@
       
       <!-- Dashboard View -->
       <div id="dashboard-view" class="view active">
-        <h2 class="view-title">Dashboard Overview</h2>
+        <h2 class="view-title">Library Dashboard</h2>
         
-        <div class="stats-grid">
+        <div class="stats-grid admin-only">
           <div class="stat-card glass-panel">
             <div class="stat-icon"><i class='bx bx-book-heart'></i></div>
             <div class="stat-info">
@@ -121,7 +121,7 @@
           </div>
         </div>
 
-        <div class="analytics-row flex mt-4">
+        <div class="analytics-row flex mt-4 admin-only">
             <div class="stat-panel glass-panel w-50 mr-2">
                 <h3>Most Popular Books</h3>
                 <ul id="top-books-list" class="styled-list"></ul>
@@ -141,7 +141,7 @@
         </div>
 
 
-        <div class="recent-transactions glass-panel mt-4">
+        <div class="recent-transactions glass-panel mt-4 admin-only">
           <h3>Recent Transactions</h3>
           <div class="table-responsive">
             <table>
@@ -164,8 +164,8 @@
       <!-- Books View -->
       <div id="books-view" class="view d-none">
         <div class="view-header">
-          <h2 class="view-title">Library Inventory</h2>
-          <button class="btn btn-primary" onclick="app.showModal('addBookModal')">
+          <h2 class="view-title">Book Collection</h2>
+          <button class="btn btn-primary admin-only" onclick="app.showModal('addBookModal')">
             <i class='bx bx-plus-circle'></i> Add New Book
           </button>
         </div>
