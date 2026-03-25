@@ -5,10 +5,19 @@ const app = {
     currentUser: null,
   },
   
-  init() {
+  async init() {
     this.bindEvents();
     this.startClock();
-    this.loadDashboard();
+    await this.loadDashboard();
+    
+    // Remove loading screen after data load
+    setTimeout(() => {
+      const loader = document.getElementById('loading-screen');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+      }
+    }, 1200);
   },
 
   startClock() {
@@ -132,9 +141,43 @@ const app = {
       } else {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align:center">No recent activity detected.</td></tr>`;
       }
+
+      this.loadFeaturedBooks();
     } catch (error) {
        console.error(error);
     }
+  },
+
+  async loadFeaturedBooks() {
+    try {
+      if (this.state.books.length === 0) {
+        this.state.books = await api.getBooks();
+      }
+      
+      const grid = document.getElementById('dashboard-books-grid');
+      if (!grid) return;
+      
+      grid.innerHTML = '';
+      const featured = this.state.books.slice(0, 8); // Show first 8 books
+      
+      featured.forEach(book => {
+        const coverEl = book.coverImage 
+          ? `<img src="${book.coverImage}" class="book-cover-img" onerror="this.src='https://images.unsplash.com/photo-1543004471-240ce8de38f9?q=80&w=1974&auto=format&fit=crop';">`
+          : `<div class="book-placeholder"><i class='bx bx-book'></i></div>`;
+
+        grid.innerHTML += `
+          <div class="book-card glass-panel" onclick="app.switchView('books-view')">
+            ${coverEl}
+            <h4>${book.title}</h4>
+            <p>${book.author}</p>
+            <div class="flex justify-between mt-2">
+              <span class="badge ${book.status}">${book.status}</span>
+              <small class="text-muted">${book.category || 'N/A'}</small>
+            </div>
+          </div>
+        `;
+      });
+    } catch (e) { console.error(e); }
   },
 
   async loadBooksView() {
@@ -364,11 +407,24 @@ const app = {
   },
 
   handleGlobalSearch(query) {
-      // Basic client-side filtering logic for the current view
       query = query.toLowerCase();
+      
+      // Filter Table rows
       const rows = document.querySelectorAll('tbody tr');
       rows.forEach(row => {
           row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+      });
+
+      // Filter Dashboard Books
+      const bookCards = document.querySelectorAll('.book-card');
+      bookCards.forEach(card => {
+          card.style.display = card.innerText.toLowerCase().includes(query) ? '' : 'none';
+      });
+
+      // Filter Member Cards
+      const memberCards = document.querySelectorAll('.member-card');
+      memberCards.forEach(card => {
+          card.style.display = card.innerText.toLowerCase().includes(query) ? '' : 'none';
       });
   }
 };

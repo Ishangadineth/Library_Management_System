@@ -14,6 +14,16 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loader-container">
+      <div class="book-loader">
+        <i class='bx bx-book-reader'></i>
+      </div>
+      <div class="loader-bar"></div>
+      <span class="loading-text">Knowledge is Loading...</span>
+    </div>
+  </div>
 
   <!-- Sidebar -->
   <nav class="sidebar glass-panel">
@@ -72,6 +82,10 @@
       </div>
       <div class="topbar-actions">
         <span id="live-clock">00:00:00</span>
+        <button id="login-btn">
+          <i class='bx bx-log-in'></i>
+          Login
+        </button>
         <i class='bx bx-bell'></i>
         <i class='bx bx-cog'></i>
       </div>
@@ -117,6 +131,15 @@
                 <ul id="top-members-list" class="styled-list"></ul>
             </div>
         </div>
+
+        <div class="featured-books mt-4">
+          <div class="view-header">
+            <h3>Featured Collection</h3>
+            <button class="btn btn-link" onclick="app.switchView('books-view')">View All</button>
+          </div>
+          <div id="dashboard-books-grid" class="books-grid"></div>
+        </div>
+
 
         <div class="recent-transactions glass-panel mt-4">
           <h3>Recent Transactions</h3>
