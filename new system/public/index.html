@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Library Management System</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Boxicons -->
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <nav class="sidebar glass-panel">
+    <div class="logo">
+      <i class='bx bx-book-reader'></i>
+      <span class="logo-name">LMS Pro</span>
+    </div>
+    <ul class="nav-links">
+      <li>
+        <a href="#" class="active" data-target="dashboard-view">
+          <i class='bx bx-grid-alt'></i>
+          <span class="link-name">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" data-target="books-view">
+          <i class='bx bx-book-open'></i>
+          <span class="link-name">Books</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" data-target="members-view">
+          <i class='bx bx-group'></i>
+          <span class="link-name">Members</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" data-target="circulation-view">
+          <i class='bx bx-transfer'></i>
+          <span class="link-name">Circulation</span>
+        </a>
+      </li>
+    </ul>
+    <div class="user-info">
+      <img src="https://ui-avatars.com/api/?name=Admin+User&background=6c5ce7&color=fff" alt="Admin">
+      <div>
+        <h4>Admin</h4>
+        <p>Librarian</p>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <section class="main-content">
+    
+    <header class="topbar glass-panel">
+      <div class="search-box">
+        <i class='bx bx-search'></i>
+        <input type="text" placeholder="Search everywhere...">
+      </div>
+      <div class="topbar-actions">
+        <i class='bx bx-bell'></i>
+        <i class='bx bx-cog'></i>
+      </div>
+    </header>
+
+    <div class="views-container">
+      
+      <!-- Dashboard View -->
+      <div id="dashboard-view" class="view active">
+        <h2 class="view-title">Dashboard Overview</h2>
+        
+        <div class="stats-grid">
+          <div class="stat-card glass-panel">
+            <div class="stat-icon"><i class='bx bx-book-heart'></i></div>
+            <div class="stat-info">
+              <h3>Total Books</h3>
+              <h2 id="stat-total-books">0</h2>
+            </div>
+          </div>
+          <div class="stat-card glass-panel">
+            <div class="stat-icon"><i class='bx bx-user-check'></i></div>
+            <div class="stat-info">
+              <h3>Total Members</h3>
+              <h2 id="stat-total-members">0</h2>
+            </div>
+          </div>
+          <div class="stat-card glass-panel">
+            <div class="stat-icon"><i class='bx bx-refresh'></i></div>
+            <div class="stat-info">
+              <h3>Active Loans</h3>
+              <h2 id="stat-active-loans">0</h2>
+            </div>
+          </div>
+        </div>
+
+        <div class="recent-transactions glass-panel mt-4">
+          <h3>Recent Transactions</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Book Title</th>
+                  <th>Member Name</th>
+                  <th>Date</th>
+                  <th>Fine Paid</th>
+                </tr>
+              </thead>
+              <tbody id="recent-transactions-tbody">
+                <!-- Data injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Books View -->
+      <div id="books-view" class="view d-none">
+        <div class="view-header">
+          <h2 class="view-title">Inventory Management</h2>
+          <button class="btn btn-primary" onclick="app.showModal('addBookModal')">
+            <i class='bx bx-plus'></i> Add Book
+          </button>
+        </div>
+        
+        <div class="books-table glass-panel mt-4">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cover</th>
+                  <th>Title</th>
+                  <th>Author</th>
+                  <th>ISBN</th>
+                  <th>Batch</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="books-tbody">
+                <!-- Data injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Members View -->
+      <div id="members-view" class="view d-none">
+        <div class="view-header">
+          <h2 class="view-title">Member Directory</h2>
+          <button class="btn btn-primary" onclick="app.showModal('addMemberModal')">
+            <i class='bx bx-user-plus'></i> Add Member
+          </button>
+        </div>
+
+        <div class="members-table glass-panel mt-4">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Card ID</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Address</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="members-tbody">
+                <!-- Data injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Circulation View -->
+      <div id="circulation-view" class="view d-none">
+        <h2 class="view-title">Circulation & Fines</h2>
+        
+        <div class="circulation-grid">
+          <div class="issue-panel glass-panel">
+            <h3>Issue Book</h3>
+            <form id="issueBookForm">
+              <div class="form-group">
+                <label>Member</label>
+                <select id="issueMemberId" required></select>
+              </div>
+              <div class="form-group">
+                <label>Book (Available only)</label>
+                <select id="issueBookId" required></select>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 mt-2">Issue Book (14 Days)</button>
+            </form>
+          </div>
+
+          <div class="return-panel glass-panel">
+            <h3>Return Book</h3>
+            <form id="returnBookForm">
+              <div class="form-group">
+                <label>Book on Loan</label>
+                <select id="returnBookId" required></select>
+              </div>
+              <button type="submit" class="btn btn-success w-100 mt-2">Process Return</button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Modals -->
+  <div id="addBookModal" class="modal">
+    <div class="modal-content glass-panel">
+      <span class="close" onclick="app.closeModal('addBookModal')">&times;</span>
+      <h2>Add New Book</h2>
+      <form id="addBookForm">
+        <div class="input-grid">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="bookTitle" required>
+          </div>
+          <div class="form-group">
+            <label>Author</label>
+            <input type="text" id="bookAuthor" required>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="bookCategory" required>
+          </div>
+          <div class="form-group">
+            <label>ISBN</label>
+            <input type="text" id="bookIsbn" required>
+          </div>
+          <div class="form-group">
+            <label>Batch Number</label>
+            <input type="number" id="bookBatch" required>
+          </div>
+          <div class="form-group">
+            <label>Cover Image URL (Optional)</label>
+            <input type="url" id="bookCover">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-4">Save Book</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="addMemberModal" class="modal">
+    <div class="modal-content glass-panel">
+      <span class="close" onclick="app.closeModal('addMemberModal')">&times;</span>
+      <h2>Register Member</h2>
+      <form id="addMemberForm">
+        <div class="input-grid">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="memberName" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="memberPhone" required>
+          </div>
+          <div class="form-group">
+            <label>Address</label>
+            <input type="text" id="memberAddress" required>
+          </div>
+          <div class="form-group">
+            <label>Member Card ID</label>
+            <input type="text" id="memberCardId" required>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-4">Register Member</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast glass-panel"></div>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
