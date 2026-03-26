@@ -1,10 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Academic Curator - Library System</title>
-    
+const fs = require('fs');
+const path = require('path');
+
+const srcDir = path.join(__dirname, 'my idea/stitch_issue_return_portal');
+
+function readFile(subpath) {
+    try {
+        return fs.readFileSync(path.join(srcDir, subpath, 'code.html'), 'utf-8');
+    } catch(e) {
+        return '';
+    }
+}
+
+// Extract body contents
+function getBody(html) {
+    const start = html.indexOf('<body');
+    const end = html.lastIndexOf('</body>');
+    if (start === -1 || end === -1) return '';
+    const bodyMatch = html.substring(start, end + 7);
+    const contentStart = bodyMatch.indexOf('>') + 1;
+    const contentEnd = bodyMatch.lastIndexOf('</body>');
+    return bodyMatch.substring(contentStart, contentEnd);
+}
+
+// Extract head config
+function getHeadInfo() {
+    return `
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -62,6 +82,7 @@
         body.is-admin .admin-flex { display: flex !important; }
         body.is-admin .public-only { display: none !important; }
         
+        /* Modals and Toasts Base (Tailwind compatible) */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         .modal.active { display: flex; align-items: center; justify-content: center; }
         .toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 200; right: 20px; bottom: 30px; font-size: 14px; opacity: 0; transition: opacity 0.3s; }
@@ -70,6 +91,27 @@
         
         .view.d-none { display: none !important; }
     </style>
+    `;
+}
+
+// Build index.html
+function buildIndex() {
+    const pubHtml = getBody(readFile('public_library_catalog'));
+    const dashHtml = getBody(readFile('librarian_dashboard'));
+    const invHtml = getBody(readFile('book_inventory'));
+    const memHtml = getBody(readFile('member_management'));
+    const irHtml = getBody(readFile('issue_return_portal'));
+    
+    // We can't just inject raw HTML directly without structure.
+    // Let's create an orchestrated index.html.
+
+    const finalHtml = \`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Curator - Library System</title>
+    \${getHeadInfo()}
 </head>
 <body class="bg-background font-body text-on-surface flex flex-col min-h-screen">
 
@@ -80,7 +122,9 @@
         <p class="text-on-surface-variant font-body">Initializing workspace...</p>
     </div>
 
-    <!-- PUBLIC LAYOUT -->
+    <!-- ============================================== -->
+    <!-- PUBLIC LAYOUT (Visible when NOT admin) -->
+    <!-- ============================================== -->
     <div id="public-layout" class="public-only flex flex-col flex-1 w-full">
         <!-- Public Top Nav -->
         <nav class="sticky top-0 z-50 flex justify-between items-center w-full px-8 py-4 bg-surface/90 backdrop-blur-sm border-b border-outline-variant/15">
@@ -90,13 +134,14 @@
             <div class="flex-1 max-w-md mx-8 hidden lg:block">
                 <div class="relative group">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-                    <input type="text" id="global-search" class="w-full bg-surface-container-highest border-none rounded-xl py-2 pl-10 pr-4 focus:ring-2 focus:ring-surface-tint outline-none text-sm" placeholder="Search for books, authors..."/>
+                    <input type="text" id="global-search-public" class="w-full bg-surface-container-highest border-none rounded-xl py-2 pl-10 pr-4 focus:ring-2 focus:ring-surface-tint outline-none text-sm" placeholder="Search for books, authors..."/>
                 </div>
             </div>
             <div class="flex items-center gap-4">
                 <button id="login-btn" class="px-4 py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-semibold hover:opacity-90 transition-all font-body text-sm flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">login</span> Sign In
+                    <span class="material-symbols-outlined text-sm">login</span> Sign In / Admin
                 </button>
+                <i id="theme-toggle" class="material-symbols-outlined cursor-pointer hover:text-primary">dark_mode</i>
             </div>
         </nav>
 
@@ -134,8 +179,8 @@
                         <p class="text-on-surface-variant text-lg font-body">Access scholarly works and rare manuscripts from our archive.</p>
                     </div>
                     <div class="flex items-center gap-4">
-                        <span class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Sort by</span>
-                        <select onchange="app.sortBooks(this.value)" class="bg-surface-container-low border-none rounded-xl py-2 pl-4 pr-10 text-sm font-bold text-primary focus:ring-2 focus:ring-surface-tint cursor-pointer outline-none">
+                        <span class="text-sm font-bold text-on-surface-variant uppercase tracking-wider">Sort</span>
+                        <select onchange="app.sortBooks(this.value)" class="bg-surface-container-low border-none rounded-xl py-2 pl-4 pr-10 text-sm font-bold text-primary focus:ring-2 focus:ring-surface-tint cursor-pointer">
                             <option value="newest">Newest Arrivals</option>
                             <option value="title">Title (A-Z)</option>
                             <option value="author">Author (A-Z)</option>
@@ -151,14 +196,17 @@
         
         <footer class="w-full py-8 px-8 flex justify-between items-center bg-primary text-white font-body text-xs mt-auto">
             <span class="text-lg font-headline font-bold">The Academic Curator</span>
-            <p class="opacity-70">&copy; 2024 The Academic Curator.</p>
+            <p class="opacity-70">&copy; 2024 The Academic Curator. Production v1.2.4-stable</p>
         </footer>
     </div>
 
 
-    <!-- ADMIN LAYOUT -->
+    <!-- ============================================== -->
+    <!-- ADMIN LAYOUT (Visible when body.is-admin) -->
+    <!-- ============================================== -->
     <div id="admin-layout" class="admin-only flex w-full flex-1">
         
+        <!-- Admin SideNav -->
         <aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low flex flex-col py-8 z-50 border-r border-outline-variant/15">
             <div class="px-6 mb-10">
                 <h1 class="text-2xl font-bold font-headline text-primary tracking-tight">Academic Curator</h1>
@@ -179,22 +227,25 @@
                 </a>
             </nav>
             <div class="px-6 mt-auto space-y-3">
-                <button id="logout-btn" class="w-full py-3 px-4 bg-error-container text-on-error-container rounded-xl font-headline font-bold flex items-center justify-center space-x-2">
+                <button onclick="document.body.classList.remove('is-admin');" class="w-full py-3 px-4 bg-error-container text-on-error-container rounded-xl font-headline font-bold flex items-center justify-center space-x-2">
                     <span class="material-symbols-outlined text-sm">logout</span> <span>Logout</span>
                 </button>
             </div>
         </aside>
 
+        <!-- Admin Main Content Area -->
         <div class="flex-1 ml-64 flex flex-col min-h-screen">
+            <!-- Admin TopNav -->
             <header class="sticky top-0 w-full h-16 bg-surface/90 backdrop-blur-md flex items-center justify-between px-8 z-40 border-b border-outline-variant/15">
                 <div class="flex items-center flex-1">
                     <div class="relative w-full max-w-md">
                         <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">search</span>
-                        <input id="admin-global-search" class="w-full bg-surface-container-highest border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-surface-tint outline-none" placeholder="Search archives..." type="text"/>
+                        <input id="global-search-admin" class="w-full bg-surface-container-highest border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-surface-tint outline-none" placeholder="Search archives..." type="text"/>
                     </div>
                 </div>
                 <div class="flex items-center space-x-6">
                     <span id="live-clock" class="font-mono text-sm text-on-surface-variant font-bold"></span>
+                    <i id="theme-toggle-admin" class="material-symbols-outlined cursor-pointer hover:text-primary">dark_mode</i>
                     <div class="flex items-center space-x-3">
                         <span class="text-sm font-headline font-bold text-primary">Admin Control</span>
                         <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold">AD</div>
@@ -202,8 +253,10 @@
                 </div>
             </header>
 
+            <!-- Views Container -->
             <main class="flex-1 p-10 bg-surface views-container">
                 
+                <!-- Dashboard View -->
                 <div id="dashboard-view" class="view active">
                     <div class="mb-10 flex justify-between items-end">
                         <div>
@@ -211,43 +264,45 @@
                             <p class="text-on-surface-variant font-label mt-1">System Administration Status</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-4 gap-6 mb-12 flex-wrap" id="stats-grid">
-                        <div class="col-span-1 min-w-[200px] bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-4 gap-6 mb-12" id="stats-grid">
+                        <div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
                             <h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Total Books</h3>
                             <div class="text-3xl font-headline font-extrabold text-primary" id="stat-total-books">0</div>
                         </div>
-                        <div class="col-span-1 min-w-[200px] bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+                        <div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
                             <h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Borrowed</h3>
                             <div class="text-3xl font-headline font-extrabold text-secondary" id="stat-borrowed">0</div>
                         </div>
-                        <div class="col-span-1 min-w-[200px] bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+                        <div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
                             <h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Overdue</h3>
                             <div class="text-3xl font-headline font-extrabold text-error" id="stat-overdue">0</div>
                         </div>
-                        <div class="col-span-1 min-w-[200px] bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
+                        <div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
                             <h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Members</h3>
                             <div class="text-3xl font-headline font-extrabold text-primary" id="stat-members">0</div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Inventory View -->
                 <div id="inventory-view" class="view d-none">
                     <div class="flex items-end justify-between mb-8">
                         <div>
                             <h2 class="text-3xl font-headline font-extrabold text-primary">Book Inventory</h2>
                             <p class="text-on-surface-variant">Manage the academic collection.</p>
                         </div>
-                        <button onclick="app.openModal('addBookModal')" class="px-6 py-2 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold flex items-center space-x-2 shadow-md">
+                        <button onclick="app.openModal('addBookModal')" class="px-6 py-2 bg-primary text-white rounded-xl font-bold flex items-center space-x-2">
                             <span class="material-symbols-outlined text-sm">add</span> <span>Add Book</span>
                         </button>
                     </div>
-                    <div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/10">
+                    <div class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/10">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-surface-container-low">
-                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Book Details</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">ISBN</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider text-center">Availability</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase">Book Details</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase">ISBN</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase">Availability</th>
                                 </tr>
                             </thead>
                             <tbody id="books-table-body" class="divide-y divide-outline-variant/10">
@@ -257,21 +312,22 @@
                     </div>
                 </div>
 
+                <!-- Members View -->
                 <div id="members-view" class="view d-none">
                     <div class="flex items-end justify-between mb-8">
                         <div>
                             <h2 class="text-3xl font-headline font-extrabold text-primary">Member Registers</h2>
                         </div>
-                        <button onclick="app.openModal('addMemberModal')" class="px-6 py-2 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold flex items-center space-x-2 shadow-md">
+                        <button onclick="app.openModal('addMemberModal')" class="px-6 py-2 bg-primary text-white rounded-xl font-bold flex items-center space-x-2">
                             <span class="material-symbols-outlined text-sm">person_add</span> <span>Add Member</span>
                         </button>
                     </div>
-                    <div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/10">
+                    <div class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/10">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-surface-container-low">
                                     <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase">Member Details</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase">Card ID / Phone</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase">Card ID</th>
                                 </tr>
                             </thead>
                             <tbody id="members-table-body" class="divide-y divide-outline-variant/10">
@@ -281,36 +337,29 @@
                     </div>
                 </div>
 
+                <!-- Circulation View -->
                 <div id="circulation-view" class="view d-none">
                     <div class="flex items-end justify-between mb-8">
                         <div>
-                            <h2 class="text-3xl font-headline font-extrabold text-primary">Issue & Return</h2>
+                            <h2 class="text-3xl font-headline font-extrabold text-primary">Issue/Return Portal</h2>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/10 shadow-sm">
-                            <h3 class="text-xl font-bold text-primary mb-6 flex items-center"><span class="material-symbols-outlined mr-2">north_east</span> Issue Book</h3>
+                    <div class="grid grid-cols-2 gap-8">
+                        <!-- Issue Form -->
+                        <div class="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/10">
+                            <h3 class="text-xl font-bold text-primary mb-6">Issue Book</h3>
                             <form id="borrowBookForm" class="space-y-4">
-                                <div>
-                                    <label class="text-xs font-bold text-on-surface-variant uppercase">Member ID</label>
-                                    <input type="text" id="borrowMemberId" placeholder="Scan or enter Card ID" class="w-full bg-surface-container-low px-4 py-3 rounded-xl border-none font-mono text-sm mt-1 focus:ring-2 focus:ring-primary" required>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-bold text-on-surface-variant uppercase">Book ISBN</label>
-                                    <input type="text" id="borrowBookId" placeholder="Scan or enter ISBN" class="w-full bg-surface-container-low px-4 py-3 rounded-xl border-none font-mono text-sm mt-1 focus:ring-2 focus:ring-primary" required>
-                                </div>
-                                <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl mt-4 shadow-md hover:bg-primary-container transition-colors">Process Issue</button>
+                                <input type="text" id="borrowMemberId" placeholder="Member Card ID (Scan)" class="w-full bg-surface-container-low px-4 py-3 rounded-xl border-none font-mono text-sm" required>
+                                <input type="text" id="borrowBookId" placeholder="Book ISBN (Scan)" class="w-full bg-surface-container-low px-4 py-3 rounded-xl border-none font-mono text-sm" required>
+                                <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl mt-4">Process Issue</button>
                             </form>
                         </div>
-                        <div class="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/10 shadow-sm relative overflow-hidden">
-                            <div class="absolute top-0 right-0 w-32 h-32 bg-secondary-container rounded-bl-full opacity-50 pointer-events-none"></div>
-                            <h3 class="text-xl font-bold text-secondary-fixed-variant mb-6 flex items-center relative z-10"><span class="material-symbols-outlined mr-2">south_west</span> Return Book</h3>
-                            <form id="returnBookForm" class="space-y-4 relative z-10">
-                                <div>
-                                    <label class="text-xs font-bold text-on-surface-variant uppercase">Book ISBN</label>
-                                    <input type="text" id="returnBookId" placeholder="Scan or enter ISBN" class="w-full bg-surface-container-low px-4 py-3 rounded-xl border-none font-mono text-sm mt-1 focus:ring-2 focus:ring-secondary" required>
-                                </div>
-                                <button type="submit" class="w-full py-3 bg-secondary-fixed-variant text-white font-bold rounded-xl mt-4 shadow-md hover:bg-secondary transition-colors">Process Return</button>
+                        <!-- Return Form -->
+                        <div class="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/10">
+                            <h3 class="text-xl font-bold text-secondary mb-6">Return Book</h3>
+                            <form id="returnBookForm" class="space-y-4">
+                                <input type="text" id="returnBookId" placeholder="Book ISBN (Scan)" class="w-full bg-surface-container-low px-4 py-3 rounded-xl border-none font-mono text-sm" required>
+                                <button type="submit" class="w-full py-3 bg-secondary text-white font-bold rounded-xl mt-4">Process Return</button>
                             </form>
                         </div>
                     </div>
@@ -321,160 +370,100 @@
     </div>
 
 
-    <!-- MODALS -->
-    <!-- Add Book Modal -->
+    <!-- ============================================== -->
+    <!-- MODALS & OVERLAYS -->
+    <!-- ============================================== -->
+
     <div id="addBookModal" class="modal">
-        <div class="bg-surface-container-lowest p-8 rounded-2xl max-w-lg w-full shadow-2xl m-4 relative flex flex-col">
-            <button onclick="app.closeModal('addBookModal')" class="absolute top-4 right-4 text-outline hover:text-error bg-transparent border-none">
-                <span class="material-symbols-outlined text-2xl">close</span>
-            </button>
-            <h2 class="text-2xl font-bold text-primary mb-6 font-headline tracking-tight">Add Inventory Entry</h2>
+        <div class="bg-surface-container-lowest p-8 rounded-2xl max-w-lg w-full shadow-2xl m-4 relative">
+            <span class="material-symbols-outlined absolute top-4 right-4 cursor-pointer text-outline hover:text-primary" onclick="app.closeModal('addBookModal')">close</span>
+            <h2 class="text-2xl font-bold text-primary mb-6 font-headline">Add Inventory Entry</h2>
             <form id="addBookForm" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-bold text-on-surface-variant uppercase">ISBN</label>
-                        <input type="text" id="bookIsbn" onkeyup="app.checkIsbnExist(this.value)" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm font-mono">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-on-surface-variant uppercase">Batch</label>
-                        <input type="number" id="bookBatch" value="1" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                        <small id="isbn-hint" class="hidden text-error text-[10px] mt-1 font-bold">ISBN exists. Set new Batch.</small>
-                    </div>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-on-surface-variant uppercase">Title</label>
-                    <input type="text" id="bookTitle" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-on-surface-variant uppercase">Author</label>
-                    <input type="text" id="bookAuthor" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-bold text-on-surface-variant uppercase">Publisher</label>
-                        <input type="text" id="bookPublisher" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-on-surface-variant uppercase">Category</label>
-                        <input type="text" id="bookCategory" placeholder="e.g. Fiction" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                    </div>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-on-surface-variant uppercase">Cover URL</label>
-                    <input type="url" id="bookCover" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                </div>
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-md mt-6">Save Book</button>
+                <input type="text" id="bookIsbn" required placeholder="ISBN" class="w-full bg-surface-container px-4 py-2 rounded-lg border-none">
+                <input type="number" id="bookBatch" value="1" required placeholder="Batch" class="w-full bg-surface-container px-4 py-2 rounded-lg border-none">
+                <input type="text" id="bookTitle" required placeholder="Title" class="w-full bg-surface-container px-4 py-2 rounded-lg border-none">
+                <input type="text" id="bookAuthor" required placeholder="Author" class="w-full bg-surface-container px-4 py-2 rounded-lg border-none">
+                <input type="text" id="bookPublisher" placeholder="Publisher" class="w-full bg-surface-container px-4 py-2 rounded-lg border-none">
+                <select id="bookCategory" class="w-full bg-surface-container px-4 py-2 rounded-lg border-none">
+                    <option value="Fiction">Fiction</option>
+                    <option value="Science">Science</option>
+                    <option value="Technology">Technology</option>
+                    <option value="History">History</option>
+                </select>
+                <input type="url" id="bookCover" placeholder="Cover Image URL (optional)" class="w-full bg-surface-container px-4 py-2 rounded-lg border-none">
+                <button type="submit" class="w-full py-3 bg-primary text-white font-bold rounded-xl">Save Entry</button>
             </form>
         </div>
     </div>
 
-    <!-- Add Member Modal -->
-    <div id="addMemberModal" class="modal">
-        <div class="bg-surface-container-lowest p-8 rounded-2xl max-w-lg w-full shadow-2xl m-4 relative flex flex-col">
-            <button onclick="app.closeModal('addMemberModal')" class="absolute top-4 right-4 text-outline hover:text-error bg-transparent border-none">
-                <span class="material-symbols-outlined text-2xl">close</span>
-            </button>
-            <h2 class="text-2xl font-bold text-primary mb-6 font-headline tracking-tight">Register Member</h2>
-            <form id="addMemberForm" class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-on-surface-variant uppercase">Full Name</label>
-                    <input type="text" id="memberName" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-on-surface-variant uppercase">Card ID</label>
-                    <input type="text" id="memberCardId" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm font-mono">
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-bold text-on-surface-variant uppercase">Phone / Contact</label>
-                        <input type="text" id="memberPhone" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-on-surface-variant uppercase">Address</label>
-                        <input type="text" id="memberAddress" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                    </div>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-on-surface-variant uppercase">Profile Photo URL</label>
-                    <input type="url" id="memberPhoto" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
-                </div>
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-md mt-6">Create Membership</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Details Modal -->
+    <!-- Details Modal structure updated to match Tailwind -->
     <div id="bookDetailModal" class="modal">
-        <div class="bg-surface-container-lowest p-8 rounded-2xl max-w-4xl w-full shadow-2xl m-4 relative flex flex-col md:flex-row gap-8">
-            <button onclick="app.closeModal('bookDetailModal')" class="absolute top-4 right-4 text-outline hover:text-error bg-transparent border-none z-10">
-                <span class="material-symbols-outlined text-2xl">close</span>
-            </button>
+        <div class="bg-surface-container-lowest p-8 rounded-2xl max-w-2xl w-full shadow-2xl m-4 relative flex gap-6">
+            <span class="material-symbols-outlined absolute top-4 right-4 cursor-pointer text-outline hover:text-primary z-10" onclick="app.closeModal('bookDetailModal')">close</span>
             
-            <div class="w-full md:w-1/3 flex flex-col gap-6">
-                <!-- Cover -->
-                <div id="detail-cover-container" class="rounded-xl overflow-hidden shadow-xl aspect-[3/4] bg-surface-container-highest relative flex items-center justify-center">
-                    <span class="material-symbols-outlined text-6xl text-outline-variant">book</span>
-                </div>
-                <div id="detail-qr-container" class="flex justify-center bg-surface-container-low p-4 rounded-xl border border-outline-variant/20"></div>
+            <div class="w-1/3 flex flex-col gap-4">
+                <div id="detail-cover-container" class="rounded-xl overflow-hidden shadow-md"></div>
+                <div id="detail-qr-container" class="flex justify-center bg-white p-2 rounded-xl border border-outline-variant/20"></div>
             </div>
             
-            <div class="w-full md:w-2/3 flex flex-col max-h-[75vh] overflow-y-auto pr-4 custom-scrollbar">
-                <h2 id="detail-title" class="text-3xl font-extrabold text-primary font-headline leading-tight">Book Title</h2>
-                <p id="detail-author" class="text-base font-bold text-on-surface-variant mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-sm">person</span> <span class="author-label">Author</span></p>
-                <div class="mb-6"><span id="detail-status" class="inline-block px-4 py-1.5 bg-secondary-container text-on-secondary-container text-xs font-bold rounded-full tracking-widest uppercase">Available</span></div>
+            <div class="w-2/3 flex flex-col max-h-[70vh] overflow-y-auto pr-4">
+                <h2 id="detail-title" class="text-2xl font-bold text-primary font-headline leading-tight">Book Title</h2>
+                <p id="detail-author" class="text-sm font-bold text-on-surface-variant mb-2">Author Name</p>
+                <span id="detail-status" class="inline-block px-3 py-1 bg-primary-container text-white text-xs font-bold rounded-full w-max mb-4">Status</span>
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-surface-container-low p-5 rounded-2xl mb-6 border border-outline-variant/10">
+                <div class="grid grid-cols-2 gap-4 bg-surface-container-low p-4 rounded-xl mb-4">
                     <div>
-                        <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">ISBN</p>
-                        <p id="detail-isbn" class="text-sm font-mono text-primary font-semibold">--</p>
+                        <p class="text-xs text-on-surface-variant font-bold uppercase">ISBN</p>
+                        <p id="detail-isbn" class="text-sm font-mono text-primary">--</p>
                     </div>
                     <div>
-                        <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Batch</p>
-                        <p id="detail-batch" class="text-sm font-mono text-primary font-semibold">--</p>
+                        <p class="text-xs text-on-surface-variant font-bold uppercase">Batch</p>
+                        <p id="detail-batch" class="text-sm text-primary">--</p>
                     </div>
                     <div>
-                        <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Category</p>
-                        <p id="detail-category" class="text-sm text-primary font-semibold">--</p>
+                        <p class="text-xs text-on-surface-variant font-bold uppercase">Category</p>
+                        <p id="detail-category" class="text-sm text-primary">--</p>
                     </div>
                     <div>
-                        <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mb-1">Publisher</p>
-                        <p id="detail-publisher" class="text-sm text-primary font-semibold">--</p>
+                        <p class="text-xs text-on-surface-variant font-bold uppercase">Publisher</p>
+                        <p id="detail-publisher" class="text-sm text-primary">--</p>
                     </div>
                 </div>
 
-                <div class="admin-only bg-surface-container-high p-5 rounded-2xl mb-6">
-                    <p class="text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-sm">edit_note</span> Librarian Notes</p>
-                    <textarea id="detail-notes" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary outline-none" rows="3" placeholder="Add custom notes..."></textarea>
-                    <button onclick="app.saveBookNotes()" class="mt-3 bg-primary hover:bg-primary-container transition-colors text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm">Save Notes</button>
+                <div class="admin-only bg-surface-container-high p-4 rounded-xl mb-4">
+                    <p class="text-xs font-bold text-primary uppercase mb-2">Librarian Notes</p>
+                    <textarea id="detail-notes" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg p-3 text-sm" rows="3"></textarea>
+                    <button onclick="app.saveBookNotes()" class="mt-2 text-xs bg-primary text-white px-4 py-2 rounded-lg font-bold">Save Notes</button>
                 </div>
                 
                 <div>
-                    <h3 class="text-base font-bold text-primary mb-4 flex items-center gap-2 font-headline"><span class="material-symbols-outlined text-lg">history</span> Borrowing History</h3>
-                    <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 overflow-hidden">
-                        <table class="w-full text-left text-xs">
-                            <thead>
-                                <tr class="bg-surface-container-low">
-                                    <th class="py-3 px-4 font-bold text-on-surface-variant uppercase tracking-wider">Member</th>
-                                    <th class="py-3 px-4 font-bold text-on-surface-variant uppercase tracking-wider">Timeline</th>
-                                    <th class="py-3 px-4 font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="detail-history-body" class="divide-y divide-outline-variant/10">
-                                <tr><td colspan="3" class="p-4 text-center text-on-surface-variant italic">No History</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <p class="text-sm font-bold text-primary mb-2">Borrowing History</p>
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-outline-variant/20">
+                                <th class="py-2">Member</th>
+                                <th>Issued</th>
+                                <th>Returned</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-history-body"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast -->
     <div id="toast" class="toast"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="js/firebase-client.js"></script>
     <script src="js/api.js"></script>
+    <!-- Update app.js selectors to match the new Tailwind classes -->
     <script src="js/app.js"></script>
 </body>
-</html>
+</html>\`;
+
+    fs.writeFileSync('index.html', finalHtml);
+    console.log('Build completed!');
+}
+
+buildIndex();

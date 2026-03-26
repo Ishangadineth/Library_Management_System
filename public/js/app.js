@@ -34,83 +34,77 @@ const app = {
     document.querySelectorAll('.nav-links a').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
-        document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
-        e.currentTarget.classList.add('active');
+        
+        document.querySelectorAll('.nav-links a').forEach(l => {
+            l.className = 'flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors font-headline font-semibold tracking-wide text-sm';
+        });
+        
+        e.currentTarget.className = 'active flex items-center px-6 py-3 bg-white text-primary rounded-r-full shadow-sm font-headline font-bold tracking-wide text-sm';
         
         const targetId = e.currentTarget.getAttribute('data-target');
         this.switchView(targetId);
       });
     });
 
+    // Filters
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.className = 'filter-btn flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all rounded-lg cursor-pointer text-sm font-headline uppercase';
+            });
+            e.currentTarget.className = 'filter-btn active flex items-center gap-3 px-4 py-3 text-primary font-bold bg-white rounded-lg cursor-pointer text-sm font-headline uppercase';
+            this.filterBooks(e.currentTarget.getAttribute('data-filter'));
+        });
+    });
+
     // Forms
-    document.getElementById('addBookForm').addEventListener('submit', this.handleAddBook.bind(this));
-    document.getElementById('addMemberForm').addEventListener('submit', this.handleAddMember.bind(this));
-    document.getElementById('issueBookForm').addEventListener('submit', this.handleIssueBook.bind(this));
-    document.getElementById('returnBookForm').addEventListener('submit', this.handleReturnBook.bind(this));
+    document.getElementById('addBookForm')?.addEventListener('submit', this.handleAddBook.bind(this));
+    document.getElementById('addMemberForm')?.addEventListener('submit', this.handleAddMember.bind(this));
+    document.getElementById('borrowBookForm')?.addEventListener('submit', this.handleIssueBook.bind(this));
+    document.getElementById('returnBookForm')?.addEventListener('submit', this.handleReturnBook.bind(this));
 
     // Global Search
-    document.getElementById('global-search').addEventListener('input', (e) => {
-        this.handleGlobalSearch(e.target.value);
-    });
+    document.getElementById('global-search')?.addEventListener('input', (e) => this.handleGlobalSearch(e.target.value));
+    document.getElementById('admin-global-search')?.addEventListener('input', (e) => this.handleGlobalSearch(e.target.value));
 
     // Login/Logout
     document.getElementById('login-btn')?.addEventListener('click', () => {
         if(this.state.isAdmin) this.handleLogout();
         else this.handleLogin();
     });
-
-    // Notifications & Settings
-    document.getElementById('notif-btn')?.addEventListener('click', () => {
-        this.showToast('You have no new notifications');
-    });
-    
-    document.getElementById('settings-btn')?.addEventListener('click', () => {
-        this.showToast('Settings panel is under maintenance');
+    document.getElementById('logout-btn')?.addEventListener('click', () => {
+        this.handleLogout();
     });
 
     // Theme Toggle
-    document.getElementById('theme-toggle')?.addEventListener('click', () => {
-        this.toggleTheme();
-    });
-
-    // Mobile Menu
-    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
-        document.querySelector('.sidebar').classList.toggle('active');
-    });
-
-    // Close sidebar on link click (mobile)
-    document.querySelectorAll('.nav-links a').forEach(link => {
-        link.addEventListener('click', () => {
-            document.querySelector('.sidebar').classList.remove('active');
-        });
-    });
+    document.getElementById('theme-toggle')?.addEventListener('click', () => this.toggleTheme());
+    document.getElementById('theme-toggle-admin')?.addEventListener('click', () => this.toggleTheme());
   },
 
   switchView(viewId) {
-    document.querySelectorAll('.view').forEach(v => v.classList.add('d-none'));
+    document.querySelectorAll('.view').forEach(v => v.classList.add('hidden', 'd-none'));
     const viewEl = document.getElementById(viewId);
-    if(viewEl) viewEl.classList.remove('d-none');
+    if(viewEl) viewEl.classList.remove('hidden', 'd-none');
 
     // Load data based on view
     if (viewId === 'dashboard-view') this.loadDashboard();
-    if (viewId === 'books-view') this.loadBooksView();
+    if (viewId === 'inventory-view') this.loadBooksView();
     if (viewId === 'members-view') this.loadMembersView();
     if (viewId === 'circulation-view') this.loadCirculationView();
   },
 
-  showModal(modalId) {
-    document.getElementById(modalId).classList.add('active');
+  openModal(modalId) {
+    document.getElementById(modalId)?.classList.add('active');
   },
 
   closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+    document.getElementById(modalId)?.classList.remove('active');
   },
 
   showToast(message, isError = false) {
     const toast = document.getElementById('toast');
     toast.textContent = message;
-    toast.style.borderLeftColor = isError ? 'var(--danger)' : 'var(--primary)';
-    toast.classList.add('show');
+    toast.className = `toast show ${isError ? 'error' : ''}`;
     setTimeout(() => { toast.classList.remove('show'); }, 3000);
   },
 
@@ -140,42 +134,17 @@ const app = {
   async loadDashboard() {
     try {
       const stats = await api.getDashboardStats();
-      document.getElementById('stat-total-books').textContent = stats.totalBooks || 0;
-      document.getElementById('stat-total-members').textContent = stats.totalMembers || 0;
-      document.getElementById('stat-active-loans').textContent = stats.activeLoans || 0;
-
-      // Top Books List
-      const topBooks = document.getElementById('top-books-list');
-      topBooks.innerHTML = stats.topBooks && stats.topBooks.length > 0 
-        ? stats.topBooks.map(b => `<li><i class='bx bx-star text-warning'></i> ${b[0]} (${b[1]} loans)</li>`).join('')
-        : '<li>No loan data available.</li>';
-
-      // Top Members
-      const topMembers = document.getElementById('top-members-list');
-      topMembers.innerHTML = stats.topMembers && stats.topMembers.length > 0
-        ? stats.topMembers.map(m => `<li><i class='bx bx-user-voice text-primary'></i> ${m[0]} (${m[1]} checkouts)</li>`).join('')
-        : '<li>No member data available.</li>';
-
-      // Recent Transactions
-      const tbody = document.getElementById('recent-transactions-tbody');
-      tbody.innerHTML = '';
-      if (stats.recentTransactions && stats.recentTransactions.length > 0) {
-        stats.recentTransactions.forEach(tx => {
-          const fineHtml = tx.finePaid ? `<span class="badge Lost">Rs ${tx.finePaid}</span>` : `<span class="badge Available">None</span>`;
-          const typeBadge = tx.type === 'Issue' ? `<span class="badge Loaned">ISSUED</span>` : `<span class="badge Available">RETURNED</span>`;
-          tbody.innerHTML += `
-            <tr>
-              <td>${typeBadge}</td>
-              <td><strong>${tx.bookTitle}</strong></td>
-              <td>${tx.memberName}</td>
-              <td>${new Date(tx.date).toLocaleString()}</td>
-              <td>${fineHtml}</td>
-            </tr>
-          `;
-        });
-      } else {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center">No recent activity detected.</td></tr>`;
-      }
+      const elTotal = document.getElementById('stat-total-books');
+      if (elTotal) elTotal.textContent = stats.totalBooks || 0;
+      
+      const elMembers = document.getElementById('stat-members');
+      if (elMembers) elMembers.textContent = stats.totalMembers || 0;
+      
+      const elBorrowed = document.getElementById('stat-borrowed');
+      if (elBorrowed) elBorrowed.textContent = stats.activeLoans || 0;
+      
+      const elOverdue = document.getElementById('stat-overdue');
+      if (elOverdue) elOverdue.textContent = stats.overdue || 0;
 
       this.loadFeaturedBooks();
     } catch (error) {
@@ -196,18 +165,30 @@ const app = {
       grid.innerHTML = '';
       
       books.forEach(book => {
-        const coverEl = book.coverImage 
-          ? `<img src="${book.coverImage}" class="book-cover-img" onerror="this.src='https://images.unsplash.com/photo-1543004471-240ce8de38f9?q=80&w=1974&auto=format&fit=crop';">`
-          : `<div class="book-placeholder"><i class='bx bx-book'></i></div>`;
+        const coverUrl = book.coverImage || 'https://images.unsplash.com/photo-1543004471-240ce8de38f9?q=80&w=1974&auto=format&fit=crop';
+        let statusBg = book.status === 'AVAILABLE' ? 'bg-secondary-container' : 'bg-error-container';
+        let statusText = book.status === 'AVAILABLE' ? 'text-on-secondary-container' : 'text-on-error-container';
+        if (book.status === 'RESERVED') {
+            statusBg = 'bg-tertiary-fixed';
+            statusText = 'text-on-tertiary-fixed-variant';
+        }
 
         grid.innerHTML += `
-          <div class="book-card glass-panel" onclick="app.showBookDetails('${book.id}')">
-            ${coverEl}
-            <h4>${book.title}</h4>
-            <p>${book.author}</p>
-            <div class="flex justify-between mt-2">
-              <span class="badge ${book.status}">${book.status}</span>
-              <small class="text-muted">${book.category || 'N/A'}</small>
+          <div class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border border-outline-variant/10" onclick="app.showBookDetails('${book.id}')">
+            <div class="relative aspect-[3/4] overflow-hidden bg-surface-container-highest flex items-center justify-center">
+              ${book.coverImage 
+                ? `<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${coverUrl}"/>` 
+                : `<span class="material-symbols-outlined text-outline-variant text-4xl">book</span>`
+              }
+              <div class="absolute top-3 right-3">
+                <span class="px-3 py-1 ${statusBg} ${statusText} text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">${book.status}</span>
+              </div>
+            </div>
+            <div class="p-5 flex flex-col flex-1">
+              <span class="text-[10px] font-bold text-primary uppercase tracking-[0.1em] mb-1 line-clamp-1">${book.category || 'Uncategorized'}</span>
+              <h3 class="text-lg font-bold text-primary leading-tight mb-1 line-clamp-2">${book.title}</h3>
+              <p class="text-sm text-on-surface-variant mb-4 line-clamp-1">${book.author}</p>
+              <button class="mt-auto w-full py-2 bg-surface-container-high text-primary font-bold text-xs rounded-lg hover:bg-primary-container hover:text-white transition-colors">View Details</button>
             </div>
           </div>
         `;
@@ -219,36 +200,41 @@ const app = {
     try {
       const books = await api.getBooks();
       this.state.books = books;
-      const tbody = document.getElementById('books-tbody');
+      const tbody = document.getElementById('books-table-body');
+      if(!tbody) return;
       tbody.innerHTML = '';
-      if(books.length === 0) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center">Empty Inventory.</td></tr>`;
+      if(books.length === 0) tbody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-sm text-on-surface-variant italic">Empty Inventory.</td></tr>`;
       
       books.forEach(book => {
-        const qrId = `qr-${book.id}`;
+        let statusBg = book.status === 'AVAILABLE' ? 'bg-secondary-container' : 'bg-error-container';
+        let statusText = book.status === 'AVAILABLE' ? 'text-on-secondary-container' : 'text-on-error-container';
+        const coverEl = book.coverImage
+           ? `<img class="w-full h-full object-cover group-hover:scale-105 transition-transform" src="${book.coverImage}">`
+           : `<span class="material-symbols-outlined text-outline">book</span>`;
+
         tbody.innerHTML += `
-          <tr onclick="app.showBookDetails('${book.id}')" style="cursor:pointer">
-            <td>
-                <div id="${qrId}" class="qr-small" title="${book.qrCode}"></div>
+          <tr class="hover:bg-surface-container-lowest transition-colors group cursor-pointer" onclick="app.showBookDetails('${book.id}')">
+            <td class="px-6 py-4">
+              <div class="flex items-center space-x-4">
+                <div class="w-12 h-16 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0 shadow-sm flex items-center justify-center">
+                  ${coverEl}
+                </div>
+                <div>
+                  <p class="text-primary font-headline font-bold text-sm tracking-tight line-clamp-1">${book.title}</p>
+                  <p class="text-[11px] text-on-surface-variant font-medium line-clamp-1 mt-1">${book.author} &bull; ${book.category || 'N/A'}</p>
+                </div>
+              </div>
             </td>
-            <td><strong>${book.title}</strong><br><small class="text-muted">${book.author}</small></td>
-            <td>${book.category || 'Uncategorized'}</td>
-            <td>${book.isbn}</td>
-            <td>#${book.batchNumber}</td>
-            <td><span class="badge ${book.status}">${book.status}</span></td>
-            <td>
-              <button class="btn btn-danger" onclick="event.stopPropagation(); app.deleteBook('${book.id}')"><i class='bx bx-trash'></i></button>
+            <td class="px-6 py-4 font-mono text-[11px] text-on-surface-variant font-medium">
+              ${book.isbn} <br> <span class="text-[9px] font-bold text-primary">#${book.batchNumber}</span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusBg} ${statusText}">
+                  ${book.status}
+              </span>
             </td>
           </tr>
         `;
-        
-        // Generate QR code after render
-        setTimeout(() => {
-            new QRCode(document.getElementById(qrId), {
-                text: book.qrCode,
-                width: 40,
-                height: 40
-            });
-        }, 100);
       });
     } catch (error) {
       console.error(error);
@@ -259,28 +245,30 @@ const app = {
     try {
       const members = await api.getMembers();
       this.state.members = members;
-      const grid = document.getElementById('members-list-grid');
-      grid.innerHTML = '';
+      const tbody = document.getElementById('members-table-body');
+      if(!tbody) return;
+      tbody.innerHTML = '';
       
+      if(members.length === 0) tbody.innerHTML = `<tr><td colspan="2" class="px-6 py-4 text-center text-sm text-on-surface-variant italic">No Members Found.</td></tr>`;
+
       members.forEach(member => {
         const photo = member.photoUrl || `https://ui-avatars.com/api/?name=${member.name}`;
-        grid.innerHTML += `
-          <div class="member-card glass-panel" onclick="app.showMemberDetail('${member.id}')">
-            <img src="${photo}" class="member-avatar" />
-            <div class="member-info">
-              <h4>${member.name}</h4>
-              <p>ID: ${member.memberCardId}</p>
-              <div id="qr-mem-${member.id}" class="qr-micro mt-2"></div>
-            </div>
-          </div>
+        tbody.innerHTML += `
+          <tr class="hover:bg-surface-container-highest transition-colors group cursor-pointer" onclick="app.showMemberDetail('${member.id}')">
+            <td class="px-6 py-4">
+              <div class="flex items-center space-x-4">
+                <img src="${photo}" class="w-10 h-10 rounded-full border border-outline-variant/20 shadow-sm" />
+                <div>
+                  <p class="text-primary font-headline font-bold text-sm tracking-tight">${member.name}</p>
+                  <p class="text-xs text-on-surface-variant font-medium mt-0.5">${member.phone || 'No phone'}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4 font-mono text-[11px] text-on-surface-variant font-medium">
+              ${member.memberCardId}
+            </td>
+          </tr>
         `;
-        setTimeout(() => {
-            new QRCode(document.getElementById(`qr-mem-${member.id}`), {
-                text: member.qrCode,
-                width: 30,
-                height: 30
-            });
-        }, 100);
       });
     } catch (error) {
       console.error(error);
@@ -329,26 +317,6 @@ const app = {
     try {
       this.state.books = await api.getBooks();
       this.state.members = await api.getMembers();
-
-      const memberSelect = document.getElementById('issueMemberId');
-      const issueBookSelect = document.getElementById('issueBookId');
-      const returnBookSelect = document.getElementById('returnBookId');
-
-      memberSelect.innerHTML = '<option value="">-- Select Member --</option>';
-      this.state.members.forEach(m => {
-        memberSelect.innerHTML += `<option value="${m.id}">${m.name} (${m.memberCardId})</option>`;
-      });
-
-      issueBookSelect.innerHTML = '<option value="">-- Scan Book --</option>';
-      returnBookSelect.innerHTML = '<option value="">-- Scan Returned Book --</option>';
-
-      this.state.books.forEach(b => {
-        if (b.status === 'Available') {
-          issueBookSelect.innerHTML += `<option value="${b.id}">${b.title} [${b.isbn}]</option>`;
-        } else if (b.status === 'Loaned') {
-          returnBookSelect.innerHTML += `<option value="${b.id}">${b.title} [${b.isbn}]</option>`;
-        }
-      });
     } catch (error) {
       console.error(error);
     }
@@ -410,14 +378,22 @@ const app = {
 
   async handleIssueBook(e) {
     e.preventDefault();
-    const memberId = document.getElementById('issueMemberId').value;
-    const bookId = document.getElementById('issueBookId').value;
-    if(!memberId || !bookId) return this.showToast('Selection missing', true);
+    const memInput = document.getElementById('borrowMemberId').value.trim();
+    const bookInput = document.getElementById('borrowBookId').value.trim();
+    if(!memInput || !bookInput) return this.showToast('Input missing', true);
+    
+    // Find member by card ID
+    const member = this.state.members?.find(m => m.memberCardId === memInput);
+    if (!member) return this.showToast('Member not found', true);
+
+    // Find book by ISBN
+    const book = this.state.books?.find(b => b.isbn === bookInput && b.status === 'AVAILABLE');
+    if (!book) return this.showToast('Book not available or not found', true);
     
     try {
-      await api.issueBook(memberId, bookId);
-      this.showToast('Book issued (Due in 14 days)');
-      document.getElementById('issueBookForm').reset();
+      await api.issueBook(member.id, book.id);
+      this.showToast('Book issued successfully!');
+      document.getElementById('borrowBookForm').reset();
       this.loadCirculationView();
     } catch (error) {
       this.showToast(error.message, true);
@@ -426,11 +402,15 @@ const app = {
 
   async handleReturnBook(e) {
     e.preventDefault();
-    const bookId = document.getElementById('returnBookId').value;
-    if(!bookId) return this.showToast('No book selected', true);
+    const bookInput = document.getElementById('returnBookId').value.trim();
+    if(!bookInput) return this.showToast('No book given', true);
     
+    // Find book by ISBN
+    const book = this.state.books?.find(b => b.isbn === bookInput && b.status !== 'AVAILABLE');
+    if (!book) return this.showToast('Invalid or not borrowed book', true);
+
     try {
-      const res = await api.returnBook(bookId);
+      const res = await api.returnBook(book.id);
       let msg = 'Item checked-in successfully.';
       if(res.fine > 0) msg = `Item LATE. Collected Fine: Rs ${res.fine}`;
       this.showToast(msg, res.fine > 0);
@@ -451,14 +431,8 @@ const app = {
     });
 
     // Filter Dashboard Books
-    const bookCards = document.querySelectorAll('.book-card');
+    const bookCards = document.querySelectorAll('#dashboard-books-grid > div');
     bookCards.forEach(card => {
-        card.style.display = card.innerText.toLowerCase().includes(query) ? '' : 'none';
-    });
-
-    // Filter Member Cards
-    const memberCards = document.querySelectorAll('.member-card');
-    memberCards.forEach(card => {
         card.style.display = card.innerText.toLowerCase().includes(query) ? '' : 'none';
     });
   },
@@ -494,10 +468,10 @@ const app = {
     const loginBtn = document.getElementById('login-btn');
     if (this.state.isAdmin) {
       document.body.classList.add('is-admin');
-      loginBtn.innerHTML = "<i class='bx bx-log-out'></i> Logout";
+      if(loginBtn) loginBtn.innerHTML = "<span class='material-symbols-outlined text-sm'>logout</span> Logout";
     } else {
       document.body.classList.remove('is-admin');
-      loginBtn.innerHTML = "<i class='bx bx-log-in'></i> Login";
+      if(loginBtn) loginBtn.innerHTML = "<span class='material-symbols-outlined text-sm'>login</span> Sign In";
     }
   },
 
@@ -510,11 +484,17 @@ const app = {
 
       // Set Info
       document.getElementById('detail-title').innerText = book.title;
-      document.getElementById('detail-author').innerText = `By ${book.author}`;
-      document.getElementById('detail-status').innerText = book.status;
-      document.getElementById('detail-status').className = `badge ${book.status} mt-2`;
+      document.getElementById('detail-author').innerText = book.author;
+      
+      let statusBg = book.status === 'AVAILABLE' ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-on-error-container';
+      if (book.status === 'RESERVED') statusBg = 'bg-tertiary-fixed text-on-tertiary-fixed-variant';
+
+      const statElement = document.getElementById('detail-status');
+      statElement.innerText = book.status;
+      statElement.className = `inline-block px-4 py-1.5 text-xs font-bold rounded-full tracking-widest uppercase ${statusBg}`;
+      
       document.getElementById('detail-isbn').innerText = book.isbn;
-      document.getElementById('detail-batch').innerText = `#${book.batchNumber}`;
+      document.getElementById('detail-batch').innerText = book.batchNumber;
       document.getElementById('detail-category').innerText = book.category || 'Uncategorized';
       document.getElementById('detail-publisher').innerText = book.publisher || 'Unknown';
       document.getElementById('detail-notes').value = book.notes || '';
@@ -522,38 +502,41 @@ const app = {
       // Set Image
       const preview = document.getElementById('detail-cover-container');
       preview.innerHTML = book.coverImage 
-        ? `<img src="${book.coverImage}" style="width:100%; border-radius:15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">`
-        : `<div class="book-placeholder" style="height:350px;"><i class='bx bx-book'></i></div>`;
+        ? `<img src="${book.coverImage}" class="w-full h-full object-cover">`
+        : `<span class="material-symbols-outlined text-6xl text-outline-variant">book</span>`;
 
       // Set History
       const historyBody = document.getElementById('detail-history-body');
       historyBody.innerHTML = '';
       if (history.length > 0) {
         history.forEach(h => {
-          const issueDate = new Date(h.issueDate).toLocaleString();
-          const returnDate = h.returnDate ? new Date(h.returnDate).toLocaleString() : '-';
+          const issueDate = new Date(h.issueDate).toLocaleDateString();
+          const returnDate = h.returnDate ? new Date(h.returnDate).toLocaleDateString() : '-';
+          let historyStatusBg = h.status === 'Returned' ? 'text-secondary-fixed-variant font-bold' : 'text-primary font-bold';
           historyBody.innerHTML += `
-            <tr>
-              <td>${h.memberName}</td>
-              <td>${issueDate}</td>
-              <td>${returnDate}</td>
-              <td><span class="badge ${h.status}">${h.status}</span></td>
+            <tr class="hover:bg-surface-container-highest transition-colors">
+              <td class="py-3 px-4 font-medium text-primary">${h.memberName}</td>
+              <td class="py-3 px-4 text-on-surface-variant">${issueDate} <span class="material-symbols-outlined text-[10px] mx-1">arrow_right_alt</span> ${returnDate}</td>
+              <td class="py-3 px-4 ${historyStatusBg}">${h.status}</td>
             </tr>
           `;
         });
       } else {
-        historyBody.innerHTML = '<tr><td colspan="4" style="text-align:center">No borrowing history found.</td></tr>';
+        historyBody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-on-surface-variant italic">No borrowing history found.</td></tr>';
       }
 
       // Generate QR
-      document.getElementById('detail-qr-container').innerHTML = '';
-      new QRCode(document.getElementById('detail-qr-container'), {
-        text: book.qrCode || `BOOK-${book.id}`,
-        width: 120, height: 120,
-        colorDark : "#ffffff", colorLight : "transparent",
-      });
+      const qrContainer = document.getElementById('detail-qr-container');
+      qrContainer.innerHTML = '';
+      setTimeout(() => {
+          new QRCode(qrContainer, {
+            text: book.qrCode || `BOOK-${book.id}`,
+            width: 100, height: 100,
+            colorDark : "#1a1c1f", colorLight : "transparent",
+          });
+      }, 50);
 
-      this.showModal('bookDetailModal');
+      this.openModal('bookDetailModal');
     } catch (e) {
       this.showToast(e.message, true);
     }
@@ -603,20 +586,23 @@ const app = {
   },
 
   toggleTheme() {
-    const isLight = document.body.classList.toggle('light-mode');
-    const icon = document.getElementById('theme-toggle');
-    if (icon) {
-      icon.className = isLight ? 'bx bx-sun' : 'bx bx-moon';
-    }
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    const isDark = document.documentElement.classList.toggle('dark');
+    const icon1 = document.getElementById('theme-toggle');
+    const icon2 = document.getElementById('theme-toggle-admin');
+    const newIcon = isDark ? 'light_mode' : 'dark_mode';
+    if (icon1) icon1.innerText = newIcon;
+    if (icon2) icon2.innerText = newIcon;
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   },
 
   initTheme() {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-      document.body.classList.add('light-mode');
-      const icon = document.getElementById('theme-toggle');
-      if (icon) icon.className = 'bx bx-sun';
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+      const icon1 = document.getElementById('theme-toggle');
+      const icon2 = document.getElementById('theme-toggle-admin');
+      if (icon1) icon1.innerText = 'light_mode';
+      if (icon2) icon2.innerText = 'light_mode';
     }
   }
 };
