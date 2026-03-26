@@ -263,6 +263,7 @@ body.is-admin .sidebar { display: flex !important; }
   flex-direction: column;
   height: 100vh;
   margin-left: 0 !important;
+  overflow-y: auto;
 }
 
 /* Side navigation active state override */

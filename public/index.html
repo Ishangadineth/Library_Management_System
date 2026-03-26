@@ -146,13 +146,21 @@
             </div>
         </div>
 
-        <div class="featured-books mt-4">
-          <div class="view-header">
-            <h3>Featured Collection</h3>
-            <button class="btn btn-link" onclick="app.switchView('books-view')">View All</button>
-          </div>
-          <div id="dashboard-books-grid" class="books-grid"></div>
+        <div class="filter-bar flex glass-panel mt-4" style="padding: 15px 25px; overflow-x: auto; gap: 15px; border-radius: 15px; margin-bottom: 30px;">
+          <button class="btn btn-link filter-btn active" onclick="app.filterBooks('all')">All Books</button>
+          <button class="btn btn-link filter-btn" onclick="app.filterBooks('Fiction')">Fiction</button>
+          <button class="btn btn-link filter-btn" onclick="app.filterBooks('Science')">Science</button>
+          <button class="btn btn-link filter-btn" onclick="app.filterBooks('Technology')">Tech</button>
+          <button class="btn btn-link filter-btn" onclick="app.filterBooks('History')">History</button>
+          <div style="flex-grow: 1;"></div>
+          <select id="sort-selector" class="glass-panel" style="background: transparent; border: none; color: #fff; padding: 5px 15px; outline: none; border: 1px solid var(--border-color); border-radius: 10px;" onchange="app.sortBooks(this.value)">
+            <option value="newest" style="background: var(--bg-dark);">Newest First</option>
+            <option value="title" style="background: var(--bg-dark);">By Title (A-Z)</option>
+            <option value="author" style="background: var(--bg-dark);">By Author</option>
+          </select>
         </div>
+
+        <div id="dashboard-books-grid" class="books-grid"></div>
 
 
         <div class="recent-transactions glass-panel mt-4 admin-only">

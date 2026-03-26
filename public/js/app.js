@@ -177,19 +177,19 @@ const app = {
     }
   },
 
-  async loadFeaturedBooks() {
+  async loadFeaturedBooks(booksToRender) {
     try {
-      if (this.state.books.length === 0) {
+      if (!this.state.books || this.state.books.length === 0) {
         this.state.books = await api.getBooks();
       }
       
+      const books = booksToRender || this.state.books;
       const grid = document.getElementById('dashboard-books-grid');
       if (!grid) return;
       
       grid.innerHTML = '';
-      const featured = this.state.books.slice(0, 8); // Show first 8 books
       
-      featured.forEach(book => {
+      books.forEach(book => {
         const coverEl = book.coverImage 
           ? `<img src="${book.coverImage}" class="book-cover-img" onerror="this.src='https://images.unsplash.com/photo-1543004471-240ce8de38f9?q=80&w=1974&auto=format&fit=crop';">`
           : `<div class="book-placeholder"><i class='bx bx-book'></i></div>`;
@@ -564,6 +564,36 @@ const app = {
     } catch (e) {
       this.showToast(e.message, true);
     }
+  },
+
+  filterBooks(category) {
+    // UI Update
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+      if(btn.innerText.includes(category) || (category === 'all' && btn.innerText.includes('All'))) {
+        btn.classList.add('active');
+      }
+    });
+
+    if (category === 'all') {
+      this.loadFeaturedBooks(this.state.books);
+    } else {
+      const filtered = this.state.books.filter(b => b.category === category);
+      this.loadFeaturedBooks(filtered);
+    }
+  },
+
+  sortBooks(criteria) {
+    let sorted = [...this.state.books];
+    if (criteria === 'newest') {
+      sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    } else if (criteria === 'title') {
+      sorted.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (criteria === 'author') {
+      sorted.sort((a, b) => a.author.localeCompare(b.author));
+    }
+    
+    this.loadFeaturedBooks(sorted);
   }
 };
 
