@@ -7,6 +7,7 @@ const app = {
   },
   
   async init() {
+    this.initTheme();
     this.checkLogin();
     this.bindEvents();
     this.startClock();
@@ -65,6 +66,11 @@ const app = {
     
     document.getElementById('settings-btn')?.addEventListener('click', () => {
         this.showToast('Settings panel is under maintenance');
+    });
+
+    // Theme Toggle
+    document.getElementById('theme-toggle')?.addEventListener('click', () => {
+        this.toggleTheme();
     });
 
     // Mobile Menu
@@ -594,6 +600,24 @@ const app = {
     }
     
     this.loadFeaturedBooks(sorted);
+  },
+
+  toggleTheme() {
+    const isLight = document.body.classList.toggle('light-mode');
+    const icon = document.getElementById('theme-toggle');
+    if (icon) {
+      icon.className = isLight ? 'bx bx-sun' : 'bx bx-moon';
+    }
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  },
+
+  initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-mode');
+      const icon = document.getElementById('theme-toggle');
+      if (icon) icon.className = 'bx bx-sun';
+    }
   }
 };
 

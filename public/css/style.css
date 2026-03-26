@@ -9,6 +9,15 @@
   --success: #10b981;
   --danger: #ef4444;
   --warning: #f59e0b;
+  --glass-blur: blur(12px);
+}
+
+body.light-mode {
+  --bg-dark: #f1f5f9;
+  --bg-panel: rgba(255, 255, 255, 0.5);
+  --text-main: #141b2d;
+  --text-muted: #64748b;
+  --border-color: rgba(0, 0, 0, 0.08);
 }
 
 * {
