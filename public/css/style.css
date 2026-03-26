@@ -13,11 +13,25 @@
 }
 
 body.light-mode {
-  --bg-dark: #f1f5f9;
-  --bg-panel: rgba(255, 255, 255, 0.5);
-  --text-main: #141b2d;
-  --text-muted: #64748b;
-  --border-color: rgba(0, 0, 0, 0.08);
+  --bg-dark: #f0f2f5;
+  --bg-panel: rgba(255, 255, 255, 0.7);
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border-color: rgba(0, 0, 0, 0.05);
+  --panel-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+:root {
+  --panel-shadow: 0 15px 35px rgba(0,0,0,0.3);
+}
+
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--panel-shadow);
 }
 
 * {
@@ -30,7 +44,7 @@ body.light-mode {
 
 body {
   background-color: var(--bg-dark);
-  background-image: 
+  background-image:
     radial-gradient(circle at 10% 20%, rgba(108, 92, 231, 0.12) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
   background-attachment: fixed;
@@ -86,7 +100,20 @@ h1, h2, h3 { color: #fff; font-weight: 700; margin-bottom: 0.5rem; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--primary-glow); }
 .btn-success { background: var(--success); color: #fff; }
 .btn-danger { background: var(--danger); color: #fff; padding: 0.5rem 0.8rem; font-size: 0.8rem;}
-.btn-link { background: transparent; color: var(--text-muted); border: 1px solid var(--border-color); }
+.btn-link {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  padding: 8px 18px;
+  border-radius: 10px;
+  color: var(--text-main);
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+body.light-mode .btn-link {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.05);
+}
 .btn-link:hover { color: #fff; border-color: #fff;}
 
 /* Sidebar */
@@ -154,17 +181,44 @@ h1, h2, h3 { color: #fff; font-weight: 700; margin-bottom: 0.5rem; }
 .search-box {
   display: flex;
   align-items: center;
-  background: rgba(0,0,0,0.3);
-  padding: 12px 20px;
-  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 8px 18px;
+  border-radius: 12px;
   width: 400px;
-  border: 1px solid var(--border-color);
+  transition: all 0.3s;
 }
-.search-box i { color: var(--text-muted); font-size: 22px; margin-right: 12px; }
-.search-box input { background: transparent; border: none; color: #fff; outline: none; width: 100%; font-size: 1rem; }
+
+body.light-mode .search-box {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.search-box i { color: var(--text-muted); margin-right: 12px; font-size: 1.2rem; }
+.search-box input { background: transparent; border: none; color: var(--text-main); outline: none; width: 100%; font-size: 1rem; }
+
+body.light-mode .search-box input::placeholder {
+  color: #94a3b8;
+}
 
 .topbar-actions { display: flex; align-items: center; gap: 20px; }
-.topbar-actions i { font-size: 26px; color: var(--text-muted); cursor: pointer; transition: color 0.2s; }
+.topbar-actions i {
+  font-size: 1.3rem;
+  color: var(--text-main);
+  opacity: 0.8;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.public-banner h1 {
+  color: var(--text-main);
+}
+
+body.light-mode .public-banner {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.1), rgba(16, 185, 129, 0.05)) !important;
+}
+
+body.light-mode .public-banner p {
+  color: #4b5563;
+}
 .topbar-actions i:hover { color: #fff; }
 
 #login-btn {
@@ -321,6 +375,24 @@ body.is-admin .public-banner { display: none !important; }
   font-size: 28px;
   cursor: pointer;
   color: var(--text-muted);
+}
+
+#live-clock {
+  font-size: 0.9rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-main);
+  opacity: 0.8;
+}
+
+body.light-mode #live-clock {
+  color: var(--text-main); /* Ensure dark text in light mode */
+  opacity: 0.8;
+}
+
+.filter-btn.active {
+  background: var(--primary) !important;
+  color: #fff !important;
+  border-color: var(--primary) !important;
 }
 
 /* Fix for Views vs Admin Toggle */
