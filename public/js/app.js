@@ -4,11 +4,11 @@ const app = {
     members: [],
     currentUser: null,
     isAdmin: false,
+    role: null,   // 'superadmin' | 'admin' | 'member' | null
   },
   
   async init() {
     this.initTheme();
-    this.checkLogin();
     this.bindEvents();
     this.startClock();
     await this.loadDashboard();
@@ -67,14 +67,9 @@ const app = {
     document.getElementById('global-search')?.addEventListener('input', (e) => this.handleGlobalSearch(e.target.value));
     document.getElementById('admin-global-search')?.addEventListener('input', (e) => this.handleGlobalSearch(e.target.value));
 
-    // Login/Logout
-    document.getElementById('login-btn')?.addEventListener('click', () => {
-        if(this.state.isAdmin) this.handleLogout();
-        else this.handleLogin();
-    });
-    document.getElementById('logout-btn')?.addEventListener('click', () => {
-        this.handleLogout();
-    });
+    // Login/Logout — now handled by Firebase (firebase-client.js)
+    // login-btn opens loginModal (set via onclick in HTML)
+    document.getElementById('logout-btn')?.addEventListener('click', () => this.signOut());
 
     // Theme Toggle
     document.getElementById('theme-toggle')?.addEventListener('click', () => this.toggleTheme());
@@ -437,43 +432,157 @@ const app = {
     });
   },
 
-  handleLogin() {
-    const password = prompt("Enter Admin Password:");
-    if (password === 'admin') {
-      this.state.isAdmin = true;
-      localStorage.setItem('libraryAdmin', 'true');
-      this.updateAdminUI();
-      this.showToast('Logged in as Administrator');
+  // Called by firebase-client.js after auth state changes
+  updateAuthUI() {
+    const { currentUser, role } = this.state;
+    const loginBtn = document.getElementById('login-btn');
+    const profilePill = document.getElementById('user-profile-pill');
+    const adminManageBtn = document.getElementById('admin-manage-btn');
+    const changePwBtn = document.getElementById('change-pw-btn');
+
+    if (currentUser) {
+      // Hide sign-in button, show profile pill
+      if (loginBtn) loginBtn.classList.add('hidden');
+      if (profilePill) {
+        profilePill.classList.remove('hidden');
+        profilePill.classList.add('flex');
+        const avatar = document.getElementById('user-avatar');
+        const nameEl = document.getElementById('user-name');
+        const badge = document.getElementById('user-role-badge');
+        if (avatar) avatar.src = currentUser.photoURL || '';
+        if (nameEl) nameEl.textContent = currentUser.displayName || currentUser.email;
+        if (badge) badge.textContent = role;
+      }
+
+      // Show/hide based on role
+      if (role === 'superadmin' || role === 'admin') {
+        document.body.classList.add('is-admin');
+      } else {
+        document.body.classList.remove('is-admin');
+      }
+
+      // Show admin manage button if superadmin
+      if (adminManageBtn) adminManageBtn.style.display = role === 'superadmin' ? 'flex' : 'none';
+
+      // Show change password button if member
+      if (changePwBtn) changePwBtn.style.display = role === 'member' ? 'flex' : 'none';
+
     } else {
-      this.showToast('Invalid credentials', true);
+      // Signed out
+      if (loginBtn) loginBtn.classList.remove('hidden');
+      if (profilePill) { profilePill.classList.add('hidden'); profilePill.classList.remove('flex'); }
+      document.body.classList.remove('is-admin');
+      if (adminManageBtn) adminManageBtn.style.display = 'none';
+      if (changePwBtn) changePwBtn.style.display = 'none';
     }
   },
 
-  handleLogout() {
-    this.state.isAdmin = false;
-    localStorage.removeItem('libraryAdmin');
-    this.updateAdminUI();
-    this.showToast('Logged out');
+  async signOut() {
+    await firebaseSignOut();
+    this.showToast('Signed out successfully');
     this.switchView('dashboard-view');
   },
 
-  checkLogin() {
-    if (localStorage.getItem('libraryAdmin') === 'true') {
-      this.state.isAdmin = true;
-      setTimeout(() => this.updateAdminUI(), 100);
+  // Admin Management (superadmin only)
+  async openAdminManage() {
+    this.openModal('adminManageModal');
+    this.loadAdminList();
+  },
+
+  async loadAdminList() {
+    const container = document.getElementById('admin-list');
+    if (!container) return;
+    container.innerHTML = '<p class="p-4 text-sm text-on-surface-variant italic">Loading...</p>';
+    try {
+      const token = await getIdToken();
+      const res = await fetch('/api/auth/admins', { headers: { 'Authorization': `Bearer ${token}` } });
+      const admins = await res.json();
+      if (admins.length === 0) {
+        container.innerHTML = '<p class="p-4 text-sm text-on-surface-variant italic">No admins found.</p>';
+        return;
+      }
+      container.innerHTML = admins.map(a => `
+        <div class="flex items-center justify-between px-4 py-3">
+          <div>
+            <p class="text-sm font-bold text-primary">${a.email}</p>
+            <p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">${a.role}</p>
+          </div>
+          ${a.role !== 'superadmin' ? `<button onclick="app.removeAdmin('${a.email}')" class="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/50 rounded-full transition-all">
+            <span class="material-symbols-outlined text-sm">person_remove</span>
+          </button>` : ''}
+        </div>
+      `).join('');
+    } catch (e) {
+      container.innerHTML = '<p class="p-4 text-sm text-error">Failed to load admins.</p>';
     }
   },
 
-  updateAdminUI() {
-    const loginBtn = document.getElementById('login-btn');
-    if (this.state.isAdmin) {
-      document.body.classList.add('is-admin');
-      if(loginBtn) loginBtn.innerHTML = "<span class='material-symbols-outlined text-sm'>logout</span> Logout";
-    } else {
-      document.body.classList.remove('is-admin');
-      if(loginBtn) loginBtn.innerHTML = "<span class='material-symbols-outlined text-sm'>login</span> Sign In";
+  async addAdmin() {
+    const email = document.getElementById('new-admin-email').value.trim();
+    if (!email) return this.showToast('Email is required', true);
+    try {
+      const token = await getIdToken();
+      const res = await fetch('/api/auth/add-admin', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      this.showToast(`${email} added as admin`);
+      document.getElementById('new-admin-email').value = '';
+      this.loadAdminList();
+    } catch (e) {
+      this.showToast(e.message, true);
     }
   },
+
+  async removeAdmin(email) {
+    if (!confirm(`Remove admin: ${email}?`)) return;
+    try {
+      const token = await getIdToken();
+      const res = await fetch(`/api/auth/remove-admin/${encodeURIComponent(email)}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      this.showToast(`${email} removed as admin`);
+      this.loadAdminList();
+    } catch (e) {
+      this.showToast(e.message, true);
+    }
+  },
+
+  // Member Change Password
+  async changeMemberPassword() {
+    const newPw = document.getElementById('new-password-input').value;
+    const confirmPw = document.getElementById('confirm-password-input').value;
+    if (!newPw || newPw.length < 6) return this.showToast('Password must be at least 6 characters', true);
+    if (newPw !== confirmPw) return this.showToast('Passwords do not match', true);
+    try {
+      const token = await getIdToken();
+      const res = await fetch('/api/auth/member/change-password', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword: newPw })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      this.showToast('Password updated successfully!');
+      this.closeModal('changePasswordModal');
+      document.getElementById('new-password-input').value = '';
+      document.getElementById('confirm-password-input').value = '';
+    } catch (e) {
+      this.showToast(e.message, true);
+    }
+  },
+
+  // Legacy stubs no longer used - kept for safety but no-ops
+  handleLogin() { this.openModal('loginModal'); },
+  handleLogout() { this.signOut(); },
+  checkLogin() {},
+  updateAdminUI() { this.updateAuthUI(); },
 
   async showBookDetails(bookId) {
     try {

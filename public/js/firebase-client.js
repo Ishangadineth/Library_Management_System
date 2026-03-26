@@ -13,25 +13,76 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-// Function to handle Google Login
-const loginWithGoogle = () => {
+// --- Auth Helpers ---
+
+async function getIdToken() {
+  const user = auth.currentUser;
+  if (!user) return null;
+  return await user.getIdToken();
+}
+
+async function verifyWithBackend() {
+  const token = await getIdToken();
+  if (!token) return null;
+  try {
+    const res = await fetch('/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return null;
+    return await res.json(); // { email, displayName, photoURL, role }
+  } catch (e) {
+    console.error('Backend verify failed:', e);
+    return null;
+  }
+}
+
+// Google Sign-In
+window.loginWithGoogle = async () => {
+  try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    return auth.signInWithPopup(provider);
+    await auth.signInWithPopup(provider);
+    // onAuthStateChanged will handle the rest
+  } catch (e) {
+    app.showToast(e.message, true);
+  }
 };
 
-// Auth listener
-auth.onAuthStateChanged(user => {
-    const loginBtn = document.getElementById('login-btn');
-    if (user) {
-        console.log("Logged in as:", user.displayName);
-        document.body.classList.add('is-firebase-auth');
-        // If it's an admin email, we can auto-grant admin rights here too
-        if(user.email === 'admin@example.com') { // Placeholder for admin logic
-             app.state.isAdmin = true;
-             app.updateAdminUI();
-        }
+// Email/Password Sign-In
+window.loginWithEmail = async (email, password) => {
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    // onAuthStateChanged will handle the rest
+  } catch (e) {
+    let msg = 'Login failed.';
+    if (e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') msg = 'Invalid email or password.';
+    if (e.code === 'auth/too-many-requests') msg = 'Too many attempts. Please try later.';
+    app.showToast(msg, true);
+  }
+};
+
+// Sign Out
+window.firebaseSignOut = async () => {
+  await auth.signOut();
+};
+
+// Auth State Listener
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    const data = await verifyWithBackend();
+    if (data) {
+      app.state.currentUser = data;
+      app.state.role = data.role;
+      app.state.isAdmin = (data.role === 'admin' || data.role === 'superadmin');
+      app.closeModal('loginModal');
+      app.updateAuthUI();
     } else {
-        console.log("No user logged in.");
-        document.body.classList.remove('is-firebase-auth');
+      await auth.signOut();
     }
+  } else {
+    app.state.currentUser = null;
+    app.state.role = null;
+    app.state.isAdmin = false;
+    app.updateAuthUI();
+  }
 });

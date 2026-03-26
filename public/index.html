@@ -44,7 +44,11 @@
                         "tertiary-fixed": "#ffdbca",
                         "on-tertiary-fixed-variant": "#723610",
                         "surface-variant": "#e2e2e7",
-                        "surface-tint": "#3a5f94"
+                        "surface-tint": "#3a5f94",
+                        // Dark colors
+                        "d-primary": "#bac8ff",
+                        "d-surface": "#1a1c1e",
+                        "d-on-surface": "#e2e2e6"
                     },
                     fontFamily: {
                         "headline": ["Manrope"],
@@ -69,6 +73,16 @@
         .toast.error { background-color: #ba1a1a; }
         
         .view.d-none { display: none !important; }
+
+        /* Dark Mode Overrides */
+        html.dark body { background-color: #1a1c1e; color: #e2e2e6; }
+        html.dark .bg-surface { background-color: #1a1c1e !important; }
+        html.dark .bg-surface-container-lowest { background-color: #141417 !important; }
+        html.dark .bg-surface-container-low { background-color: #1c1c21 !important; }
+        html.dark .bg-surface-container-highest { background-color: #2b2b31 !important; }
+        html.dark .text-primary { color: #bac8ff !important; }
+        html.dark .text-on-surface-variant { color: #c3c6d1 !important; }
+        html.dark .border-outline-variant\/10 { border-color: rgba(255,255,255,0.08) !important; }
     </style>
 </head>
 <body class="bg-background font-body text-on-surface flex flex-col min-h-screen">
@@ -94,9 +108,22 @@
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <button id="login-btn" class="px-4 py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-semibold hover:opacity-90 transition-all font-body text-sm flex items-center gap-2">
+                <button id="theme-toggle" class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all flex items-center justify-center">
+                    <span class="material-symbols-outlined text-lg">dark_mode</span>
+                </button>
+                <!-- Shows when signed out -->
+                <button id="login-btn" onclick="app.openModal('loginModal')" class="px-4 py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-semibold hover:opacity-90 transition-all font-body text-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">login</span> Sign In
                 </button>
+                <!-- Shows when signed in -->
+                <div id="user-profile-pill" class="hidden items-center gap-3 bg-surface-container-highest px-3 py-2 rounded-full">
+                    <img id="user-avatar" src="" class="w-7 h-7 rounded-full border border-outline-variant/20" onerror="this.style.display='none'"/>
+                    <span id="user-name" class="text-xs font-bold text-primary hidden sm:block"></span>
+                    <span id="user-role-badge" class="text-[9px] font-bold uppercase tracking-wider bg-primary text-white px-2 py-0.5 rounded-full"></span>
+                    <button onclick="app.signOut()" class="p-1 text-on-surface-variant hover:text-error transition-colors" title="Sign Out">
+                        <span class="material-symbols-outlined text-sm">logout</span>
+                    </button>
+                </div>
             </div>
         </nav>
 
@@ -150,7 +177,10 @@
         </div>
         
         <footer class="w-full py-8 px-8 flex justify-between items-center bg-primary text-white font-body text-xs mt-auto">
-            <span class="text-lg font-headline font-bold">The Academic Curator</span>
+            <div class="flex flex-col gap-1">
+                <span class="text-lg font-headline font-bold">The Academic Curator</span>
+                <span class="opacity-50 text-[10px]">Version 2.0.4-Tailwind</span>
+            </div>
             <p class="opacity-70">&copy; 2024 The Academic Curator.</p>
         </footer>
     </div>
@@ -179,6 +209,16 @@
                 </a>
             </nav>
             <div class="px-6 mt-auto space-y-3">
+                <!-- Superadmin only: Admin Management -->
+                <button id="admin-manage-btn" onclick="app.openAdminManage()" style="display:none" class="w-full py-2.5 px-4 bg-primary-fixed text-on-primary-fixed-variant rounded-xl font-headline font-bold flex items-center space-x-2 text-sm">
+                    <span class="material-symbols-outlined text-sm">manage_accounts</span>
+                    <span>Admin Management</span>
+                </button>
+                <!-- Member only: Change Password -->
+                <button id="change-pw-btn" onclick="app.openModal('changePasswordModal')" style="display:none" class="w-full py-2.5 px-4 bg-secondary-container text-on-secondary-container rounded-xl font-headline font-bold flex items-center space-x-2 text-sm">
+                    <span class="material-symbols-outlined text-sm">lock_reset</span>
+                    <span>Change Password</span>
+                </button>
                 <button id="logout-btn" class="w-full py-3 px-4 bg-error-container text-on-error-container rounded-xl font-headline font-bold flex items-center justify-center space-x-2">
                     <span class="material-symbols-outlined text-sm">logout</span> <span>Logout</span>
                 </button>
@@ -194,6 +234,9 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-6">
+                    <button id="theme-toggle-admin" class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-all flex items-center justify-center">
+                        <span class="material-symbols-outlined text-lg">dark_mode</span>
+                    </button>
                     <span id="live-clock" class="font-mono text-sm text-on-surface-variant font-bold"></span>
                     <div class="flex items-center space-x-3">
                         <span class="text-sm font-headline font-bold text-primary">Admin Control</span>
@@ -471,6 +514,116 @@
 
     <!-- Toast -->
     <div id="toast" class="toast"></div>
+
+    <!-- ============================================================ -->
+    <!-- LOGIN MODAL -->
+    <!-- ============================================================ -->
+    <div id="loginModal" class="modal">
+        <div class="bg-surface-container-lowest rounded-2xl max-w-md w-full m-4 shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-br from-primary to-primary-container p-8 text-white text-center">
+                <span class="material-symbols-outlined text-5xl mb-2">local_library</span>
+                <h2 class="text-2xl font-headline font-extrabold">The Academic Curator</h2>
+                <p class="text-white/70 text-sm mt-1">Sign in to access your account</p>
+            </div>
+            <!-- Body -->
+            <div class="p-8 space-y-4">
+                <!-- Google -->
+                <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 bg-surface-container-highest hover:bg-surface-container-high transition-colors py-3 px-4 rounded-xl font-bold text-sm text-on-surface border border-outline-variant/20 shadow-sm">
+                    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+                    Continue with Google
+                </button>
+
+                <div class="flex items-center gap-3">
+                    <hr class="flex-1 border-outline-variant/20">
+                    <span class="text-xs text-on-surface-variant font-medium">or</span>
+                    <hr class="flex-1 border-outline-variant/20">
+                </div>
+
+                <!-- Email/Password -->
+                <div class="space-y-3">
+                    <input type="email" id="auth-email" placeholder="Email address" class="w-full bg-surface-container-highest px-4 py-3 rounded-xl border-none outline-none text-sm focus:ring-2 focus:ring-surface-tint"/>
+                    <div class="relative">
+                        <input type="password" id="auth-password" placeholder="Password" class="w-full bg-surface-container-highest px-4 py-3 rounded-xl border-none outline-none text-sm focus:ring-2 focus:ring-surface-tint pr-12"/>
+                        <button type="button" onclick="document.getElementById('auth-password').type = document.getElementById('auth-password').type === 'password' ? 'text' : 'password'" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary">
+                            <span class="material-symbols-outlined text-base">visibility</span>
+                        </button>
+                    </div>
+                    <button onclick="loginWithEmail(document.getElementById('auth-email').value, document.getElementById('auth-password').value)" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-md">
+                        Sign In
+                    </button>
+                </div>
+            </div>
+            <div class="px-8 pb-6 text-center">
+                <button onclick="app.closeModal('loginModal')" class="text-xs text-on-surface-variant hover:text-primary transition-colors">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ADMIN MANAGEMENT MODAL (Superadmin only) -->
+    <!-- ============================================================ -->
+    <div id="adminManageModal" class="modal">
+        <div class="bg-surface-container-lowest rounded-2xl max-w-xl w-full m-4 shadow-2xl relative">
+            <button onclick="app.closeModal('adminManageModal')" class="absolute top-4 right-4 text-outline hover:text-error border-none bg-transparent">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="p-8">
+                <h2 class="text-2xl font-headline font-extrabold text-primary mb-1">Admin Management</h2>
+                <p class="text-sm text-on-surface-variant mb-6">Add or remove library administrators.</p>
+
+                <!-- Add Admin -->
+                <div class="flex gap-2 mb-6">
+                    <input type="email" id="new-admin-email" placeholder="admin@email.com" class="flex-1 bg-surface-container-highest px-4 py-2 rounded-xl border-none outline-none text-sm focus:ring-2 focus:ring-surface-tint"/>
+                    <button onclick="app.addAdmin()" class="px-4 py-2 bg-primary text-white font-bold rounded-xl text-sm flex items-center gap-2 hover:bg-primary-container transition-colors">
+                        <span class="material-symbols-outlined text-sm">person_add</span> Add
+                    </button>
+                </div>
+
+                <!-- Admin List -->
+                <div class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/10">
+                    <div class="px-4 py-3 bg-surface-container border-b border-outline-variant/10">
+                        <h3 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Current Admins</h3>
+                    </div>
+                    <div id="admin-list" class="divide-y divide-outline-variant/10 max-h-64 overflow-y-auto">
+                        <p class="p-4 text-sm text-on-surface-variant italic">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- MEMBER CHANGE PASSWORD MODAL -->
+    <!-- ============================================================ -->
+    <div id="changePasswordModal" class="modal">
+        <div class="bg-surface-container-lowest rounded-2xl max-w-md w-full m-4 shadow-2xl relative">
+            <button onclick="app.closeModal('changePasswordModal')" class="absolute top-4 right-4 text-outline hover:text-error border-none bg-transparent">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+            <div class="p-8">
+                <h2 class="text-2xl font-headline font-extrabold text-primary mb-1">Change Password</h2>
+                <p class="text-sm text-on-surface-variant mb-6">Set a new password for your account.</p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase">New Password</label>
+                        <input type="password" id="new-password-input" placeholder="At least 6 characters" class="w-full bg-surface-container-highest px-4 py-3 rounded-xl border-none outline-none text-sm mt-1 focus:ring-2 focus:ring-surface-tint"/>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase">Confirm Password</label>
+                        <input type="password" id="confirm-password-input" placeholder="Repeat new password" class="w-full bg-surface-container-highest px-4 py-3 rounded-xl border-none outline-none text-sm mt-1 focus:ring-2 focus:ring-surface-tint"/>
+                    </div>
+                    <button onclick="app.changeMemberPassword()" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-md mt-2">
+                        Update Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="js/firebase-client.js"></script>
