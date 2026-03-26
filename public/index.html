@@ -207,6 +207,10 @@
                 <a href="#" data-target="circulation-view" class="flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors font-headline font-semibold tracking-wide text-sm">
                     <span class="material-symbols-outlined mr-3">swap_horiz</span> Issue/Return
                 </a>
+                <a href="#" data-target="cart-view" class="flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors font-headline font-semibold tracking-wide text-sm">
+                    <span class="material-symbols-outlined mr-3">shopping_cart</span> Cart List
+                    <span id="cart-count-badge" class="ml-auto bg-error text-white text-[9px] font-bold rounded-full px-2 py-0.5 hidden"></span>
+                </a>
             </nav>
             <div class="px-6 mt-auto space-y-3">
                 <!-- Superadmin only: Admin Management -->
@@ -303,7 +307,7 @@
                 <div id="members-view" class="view d-none">
                     <div class="flex items-end justify-between mb-8">
                         <div>
-                            <h2 class="text-3xl font-headline font-extrabold text-primary">Member Registers</h2>
+                            <h2 class="text-3xl font-headline font-extrabold text-primary">Member Cart</h2>
                         </div>
                         <button onclick="app.openModal('addMemberModal')" class="px-6 py-2 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold flex items-center space-x-2 shadow-md">
                             <span class="material-symbols-outlined text-sm">person_add</span> <span>Add Member</span>
@@ -356,6 +360,47 @@
                                 <button type="submit" class="w-full py-3 bg-secondary-fixed-variant text-white font-bold rounded-xl mt-4 shadow-md hover:bg-secondary transition-colors">Process Return</button>
                             </form>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Cart List View (Admin sees all member cart requests) -->
+                <div id="cart-view" class="view d-none">
+                    <div class="flex items-end justify-between mb-8">
+                        <div>
+                            <h2 class="text-3xl font-headline font-extrabold text-primary">Cart Requests</h2>
+                            <p class="text-on-surface-variant">Books pre-requested by members.</p>
+                        </div>
+                        <button onclick="app.loadCartView()" class="px-4 py-2 bg-surface-container-highest rounded-xl text-sm font-bold flex items-center gap-2 text-primary hover:bg-surface-container-high transition-colors">
+                            <span class="material-symbols-outlined text-sm">refresh</span> Refresh
+                        </button>
+                    </div>
+                    <div id="cart-list-container" class="space-y-3">
+                        <p class="text-on-surface-variant italic">Loading cart requests...</p>
+                    </div>
+                </div>
+
+                <!-- Member Issue & Return History View -->
+                <div id="member-history-view" class="view d-none">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-headline font-extrabold text-primary">Issue &amp; Return History</h2>
+                        <p class="text-on-surface-variant">Your personal borrowing history.</p>
+                    </div>
+                    <div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/10">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="bg-surface-container-low">
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Book</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Issue Date</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Due / Return</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Issued By</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase tracking-wider">Fine</th>
+                                </tr>
+                            </thead>
+                            <tbody id="member-history-tbody" class="divide-y divide-outline-variant/10">
+                                <tr><td colspan="6" class="px-6 py-8 text-center text-on-surface-variant italic">No history yet.</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -526,21 +571,26 @@
                 <h2 class="text-2xl font-headline font-extrabold">The Academic Curator</h2>
                 <p class="text-white/70 text-sm mt-1">Sign in to access your account</p>
             </div>
-            <!-- Body -->
-            <div class="p-8 space-y-4">
-                <!-- Google -->
+            <!-- Tabs -->
+            <div class="flex border-b border-outline-variant/20">
+                <button onclick="app.switchLoginTab('admin')" id="login-tab-admin" class="flex-1 py-3 text-sm font-bold text-primary border-b-2 border-primary transition-all">
+                    Admin / Staff
+                </button>
+                <button onclick="app.switchLoginTab('member')" id="login-tab-member" class="flex-1 py-3 text-sm font-bold text-on-surface-variant border-b-2 border-transparent transition-all">
+                    Member
+                </button>
+            </div>
+            <!-- Admin Login Tab -->
+            <div id="login-panel-admin" class="p-8 space-y-4">
                 <button onclick="loginWithGoogle()" class="w-full flex items-center justify-center gap-3 bg-surface-container-highest hover:bg-surface-container-high transition-colors py-3 px-4 rounded-xl font-bold text-sm text-on-surface border border-outline-variant/20 shadow-sm">
                     <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
                     Continue with Google
                 </button>
-
                 <div class="flex items-center gap-3">
                     <hr class="flex-1 border-outline-variant/20">
-                    <span class="text-xs text-on-surface-variant font-medium">or</span>
+                    <span class="text-xs text-on-surface-variant font-medium">or email</span>
                     <hr class="flex-1 border-outline-variant/20">
                 </div>
-
-                <!-- Email/Password -->
                 <div class="space-y-3">
                     <input type="email" id="auth-email" placeholder="Email address" class="w-full bg-surface-container-highest px-4 py-3 rounded-xl border-none outline-none text-sm focus:ring-2 focus:ring-surface-tint"/>
                     <div class="relative">
@@ -551,6 +601,25 @@
                     </div>
                     <button onclick="loginWithEmail(document.getElementById('auth-email').value, document.getElementById('auth-password').value)" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-md">
                         Sign In
+                    </button>
+                </div>
+            </div>
+            <!-- Member Login Tab -->
+            <div id="login-panel-member" class="p-8 space-y-4 hidden">
+                <div class="bg-secondary-container/50 rounded-xl p-4 text-sm text-on-secondary-container">
+                    <p class="font-bold mb-1">Member Login</p>
+                    <p class="text-xs opacity-80">Use your Library Card ID. Default password is <strong>1234</strong>.</p>
+                </div>
+                <div class="space-y-3">
+                    <input type="text" id="member-card-id-input" placeholder="Library Card ID (e.g. LIB-001)" class="w-full bg-surface-container-highest px-4 py-3 rounded-xl border-none outline-none text-sm font-mono focus:ring-2 focus:ring-surface-tint"/>
+                    <div class="relative">
+                        <input type="password" id="member-password-input" placeholder="Password (default: 1234)" class="w-full bg-surface-container-highest px-4 py-3 rounded-xl border-none outline-none text-sm focus:ring-2 focus:ring-surface-tint pr-12"/>
+                        <button type="button" onclick="document.getElementById('member-password-input').type = document.getElementById('member-password-input').type === 'password' ? 'text' : 'password'" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary">
+                            <span class="material-symbols-outlined text-base">visibility</span>
+                        </button>
+                    </div>
+                    <button onclick="loginWithCardId(document.getElementById('member-card-id-input').value, document.getElementById('member-password-input').value)" class="w-full py-3 bg-gradient-to-r from-secondary to-secondary-container text-primary font-bold rounded-xl shadow-md">
+                        Member Sign In
                     </button>
                 </div>
             </div>

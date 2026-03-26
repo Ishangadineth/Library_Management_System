@@ -10,7 +10,7 @@ const checkDb = (req, res, next) => {
 // Issue a book
 router.post('/issue', checkDb, async (req, res) => {
   try {
-    const { memberId, bookId } = req.body;
+    const { memberId, bookId, adminName, adminEmail } = req.body;
 
     const bookRef = db.collection('books').doc(bookId);
     const bookDoc = await bookRef.get();
@@ -32,6 +32,8 @@ router.post('/issue', checkDb, async (req, res) => {
       bookTitle: bookDoc.data().title,
       memberId,
       memberName: memberDoc.data().name,
+      issuedBy: adminName || 'Admin',
+      issuedByEmail: adminEmail || '',
       issueDate: issueDate.toISOString(),
       dueDate: dueDate.toISOString(),
       status: 'Active',
@@ -45,6 +47,7 @@ router.post('/issue', checkDb, async (req, res) => {
       type: 'Issue',
       bookTitle: bookDoc.data().title,
       memberName: memberDoc.data().name,
+      issuedBy: adminName || 'Admin',
       date: new Date().toISOString()
     });
 

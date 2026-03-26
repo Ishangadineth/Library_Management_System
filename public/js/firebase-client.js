@@ -61,6 +61,36 @@ window.loginWithEmail = async (email, password) => {
   }
 };
 
+// Member Login by Card ID (Card ID + default password)
+window.loginWithCardId = async (cardId, password) => {
+  if (!cardId) return app.showToast('Card ID is required', true);
+  if (!password) password = '1234';
+  const email = `${cardId.toLowerCase().trim()}@library.ac.lk`;
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    // If successful, onAuthStateChanged will check the backend for the role "member"
+  } catch (e) {
+    if (e.code === 'auth/user-not-found') {
+      // If user doesn't exist yet in Firebase, create them
+      try {
+        await auth.createUserWithEmailAndPassword(email, password);
+        // Now also verify the Card ID exists in Firestore
+        const memberCheck = await fetch(`/api/members/by-card/${encodeURIComponent(cardId)}`);
+        if (!memberCheck.ok) {
+          await auth.currentUser.delete();
+          return app.showToast('Card ID not found in library system', true);
+        }
+      } catch (createErr) {
+        return app.showToast(createErr.message, true);
+      }
+    } else if (e.code === 'auth/wrong-password') {
+      app.showToast('Incorrect password. Default is 1234', true);
+    } else {
+      app.showToast(e.message, true);
+    }
+  }
+};
+
 // Sign Out
 window.firebaseSignOut = async () => {
   await auth.signOut();

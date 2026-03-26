@@ -42,6 +42,15 @@ const api = {
     const res = await fetch(`${API_BASE_URL}/members`);
     return res.json();
   },
+  async getMemberByCardId(cardId) {
+    const res = await fetch(`${API_BASE_URL}/members/by-card/${cardId}`);
+    if (!res.ok) return null;
+    return res.json();
+  },
+  async getMemberHistoryByCard(cardId) {
+    const res = await fetch(`${API_BASE_URL}/members/by-card/${cardId}/history`);
+    return res.json();
+  },
   async addMember(memberData) {
     const res = await fetch(`${API_BASE_URL}/members`, {
       method: 'POST',
@@ -61,21 +70,45 @@ const api = {
     return res.json();
   },
 
-  // Circulation API
-  async issueBook(memberId, bookId) {
-    const res = await fetch(`${API_BASE_URL}/circulation/issue`, {
+  // Cart API
+  async getMemberCart(cardId) {
+    const res = await fetch(`${API_BASE_URL}/members/by-card/${cardId}/cart`);
+    return res.json();
+  },
+  async addToMemberCart(cardId, bookData) {
+    const res = await fetch(`${API_BASE_URL}/members/by-card/${cardId}/cart`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ memberId, bookId })
+      body: JSON.stringify(bookData)
     });
     if (!res.ok) throw new Error((await res.json()).error);
     return res.json();
   },
-  async returnBook(bookId) {
+  async removeFromCart(cartItemId) {
+    const res = await fetch(`${API_BASE_URL}/members/cart/${cartItemId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+  async getAllCartItems() {
+    const res = await fetch(`${API_BASE_URL}/members/cart/all`);
+    return res.json();
+  },
+
+  // Circulation API
+  async issueBook(memberId, bookId, adminName, adminEmail) {
+    const res = await fetch(`${API_BASE_URL}/circulation/issue`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId, bookId, adminName, adminEmail })
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    return res.json();
+  },
+  async returnBook(bookId, adminName, adminEmail) {
     const res = await fetch(`${API_BASE_URL}/circulation/return`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookId })
+      body: JSON.stringify({ bookId, adminName, adminEmail })
     });
     if (!res.ok) throw new Error((await res.json()).error);
     return res.json();

@@ -86,6 +86,30 @@ const app = {
     if (viewId === 'inventory-view') this.loadBooksView();
     if (viewId === 'members-view') this.loadMembersView();
     if (viewId === 'circulation-view') this.loadCirculationView();
+    if (viewId === 'cart-view') this.loadCartView();
+    if (viewId === 'member-history-view') this.loadMemberHistory();
+  },
+
+  switchLoginTab(tab) {
+    const adminPanel = document.getElementById('login-panel-admin');
+    const memberPanel = document.getElementById('login-panel-member');
+    const adminTab = document.getElementById('login-tab-admin');
+    const memberTab = document.getElementById('login-tab-member');
+    if (tab === 'admin') {
+      adminPanel.classList.remove('hidden');
+      memberPanel.classList.add('hidden');
+      adminTab.classList.add('text-primary', 'border-primary');
+      adminTab.classList.remove('text-on-surface-variant', 'border-transparent');
+      memberTab.classList.add('text-on-surface-variant', 'border-transparent');
+      memberTab.classList.remove('text-primary', 'border-primary');
+    } else {
+      memberPanel.classList.remove('hidden');
+      adminPanel.classList.add('hidden');
+      memberTab.classList.add('text-primary', 'border-primary');
+      memberTab.classList.remove('text-on-surface-variant', 'border-transparent');
+      adminTab.classList.add('text-on-surface-variant', 'border-transparent');
+      adminTab.classList.remove('text-primary', 'border-primary');
+    }
   },
 
   openModal(modalId) {
@@ -183,7 +207,10 @@ const app = {
               <span class="text-[10px] font-bold text-primary uppercase tracking-[0.1em] mb-1 line-clamp-1">${book.category || 'Uncategorized'}</span>
               <h3 class="text-lg font-bold text-primary leading-tight mb-1 line-clamp-2">${book.title}</h3>
               <p class="text-sm text-on-surface-variant mb-4 line-clamp-1">${book.author}</p>
-              <button class="mt-auto w-full py-2 bg-surface-container-high text-primary font-bold text-xs rounded-lg hover:bg-primary-container hover:text-white transition-colors">View Details</button>
+              <div class="mt-auto flex gap-2">
+                <button onclick="event.stopPropagation();app.showBookDetails('${book.id}')" class="flex-1 py-2 bg-surface-container-high text-primary font-bold text-xs rounded-lg hover:bg-primary-container hover:text-white transition-colors">View Details</button>
+                ${this.state.role === 'member' ? `<button onclick="event.stopPropagation();app.addToCart('${book.id}')" class="px-3 py-2 bg-secondary-container text-on-secondary-container font-bold text-xs rounded-lg hover:bg-secondary hover:text-white transition-colors" title="Add to Cart"><span class="material-symbols-outlined text-sm">add_shopping_cart</span></button>` : ''}
+              </div>
             </div>
           </div>
         `;
@@ -385,8 +412,11 @@ const app = {
     const book = this.state.books?.find(b => b.isbn === bookInput && b.status === 'AVAILABLE');
     if (!book) return this.showToast('Book not available or not found', true);
     
+    const adminName = this.state.currentUser?.displayName || this.state.currentUser?.email || 'Admin';
+    const adminEmail = this.state.currentUser?.email || '';
+
     try {
-      await api.issueBook(member.id, book.id);
+      await api.issueBook(member.id, book.id, adminName, adminEmail);
       this.showToast('Book issued successfully!');
       document.getElementById('borrowBookForm').reset();
       this.loadCirculationView();
@@ -441,7 +471,6 @@ const app = {
     const changePwBtn = document.getElementById('change-pw-btn');
 
     if (currentUser) {
-      // Hide sign-in button, show profile pill
       if (loginBtn) loginBtn.classList.add('hidden');
       if (profilePill) {
         profilePill.classList.remove('hidden');
@@ -454,26 +483,35 @@ const app = {
         if (badge) badge.textContent = role;
       }
 
-      // Show/hide based on role
       if (role === 'superadmin' || role === 'admin') {
         document.body.classList.add('is-admin');
+      } else if (role === 'member') {
+        // Member: show admin layout but limited links
+        document.body.classList.add('is-admin');
+        // Hide admin-only nav items from member
+        document.querySelectorAll('.nav-links a').forEach(link => {
+          const target = link.getAttribute('data-target');
+          const memberAllowed = ['dashboard-view', 'member-history-view', 'cart-view'];
+          link.style.display = (!target || memberAllowed.includes(target) || target === 'cart-view') ? '' : 'none';
+        });
+        // Switch view to member history
+        this.switchView('member-history-view');
+        this.showToast(`Welcome back, ${currentUser.displayName || currentUser.email}!`);
       } else {
         document.body.classList.remove('is-admin');
       }
 
-      // Show admin manage button if superadmin
       if (adminManageBtn) adminManageBtn.style.display = role === 'superadmin' ? 'flex' : 'none';
-
-      // Show change password button if member
       if (changePwBtn) changePwBtn.style.display = role === 'member' ? 'flex' : 'none';
 
     } else {
-      // Signed out
       if (loginBtn) loginBtn.classList.remove('hidden');
       if (profilePill) { profilePill.classList.add('hidden'); profilePill.classList.remove('flex'); }
       document.body.classList.remove('is-admin');
       if (adminManageBtn) adminManageBtn.style.display = 'none';
       if (changePwBtn) changePwBtn.style.display = 'none';
+      // Restore all nav links visibility
+      document.querySelectorAll('.nav-links a').forEach(link => link.style.display = '');
     }
   },
 
@@ -578,11 +616,117 @@ const app = {
     }
   },
 
-  // Legacy stubs no longer used - kept for safety but no-ops
+  // Legacy stubs
   handleLogin() { this.openModal('loginModal'); },
   handleLogout() { this.signOut(); },
   checkLogin() {},
   updateAdminUI() { this.updateAuthUI(); },
+
+  // Cart: Load all cart requests (admin view)
+  async loadCartView() {
+    const container = document.getElementById('cart-list-container');
+    if (!container) return;
+    container.innerHTML = '<p class="text-on-surface-variant italic">Loading...</p>';
+    try {
+      const items = await api.getAllCartItems();
+      if (items.length === 0) {
+        container.innerHTML = '<p class="text-on-surface-variant italic">No cart requests yet.</p>';
+        const badge = document.getElementById('cart-count-badge');
+        if (badge) badge.classList.add('hidden');
+        return;
+      }
+      // Update badge
+      const badge = document.getElementById('cart-count-badge');
+      if (badge) { badge.textContent = items.length; badge.classList.remove('hidden'); }
+
+      container.innerHTML = items.map(item => `
+        <div class="flex items-center justify-between bg-surface-container-lowest rounded-xl px-6 py-4 border border-outline-variant/10 shadow-sm">
+          <div class="flex items-center gap-4">
+            ${item.coverImage ? `<img src="${item.coverImage}" class="w-10 h-14 object-cover rounded-lg shadow-sm">` : `<div class="w-10 h-14 bg-surface-container rounded-lg flex items-center justify-center"><span class="material-symbols-outlined text-outline">book</span></div>`}
+            <div>
+              <p class="text-sm font-bold text-primary">${item.bookTitle}</p>
+              <p class="text-xs text-on-surface-variant">${item.bookAuthor || ''}</p>
+              <p class="text-[10px] text-on-surface-variant mt-1">Requested: ${new Date(item.addedAt).toLocaleString()}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="app.dismissCartItem('${item.id}')" class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/50 rounded-full transition-all" title="Dismiss / Remove">
+              <span class="material-symbols-outlined text-sm">remove_shopping_cart</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    } catch (e) {
+      container.innerHTML = '<p class="text-error italic">Failed to load cart.</p>';
+    }
+  },
+
+  async dismissCartItem(cartItemId) {
+    try {
+      await api.removeFromCart(cartItemId);
+      this.showToast('Cart item removed');
+      this.loadCartView();
+    } catch (e) {
+      this.showToast(e.message, true);
+    }
+  },
+
+  // Add book to member's cart (from public catalog)
+  async addToCart(bookId) {
+    const { currentUser, role } = this.state;
+    if (!currentUser || role !== 'member') {
+      this.openModal('loginModal');
+      this.switchLoginTab('member');
+      return;
+    }
+    // Get cardId from email format: cardId@library.ac.lk
+    const cardId = currentUser.email.replace('@library.ac.lk', '');
+    const book = this.state.books.find(b => b.id === bookId);
+    if (!book) return this.showToast('Book not found', true);
+    try {
+      await api.addToMemberCart(cardId, {
+        bookId: book.id,
+        bookTitle: book.title,
+        bookAuthor: book.author,
+        coverImage: book.coverImage || ''
+      });
+      this.showToast(`"${book.title}" added to your cart!`);
+    } catch (e) {
+      this.showToast(e.message, true);
+    }
+  },
+
+  // Member: Load their own issue/return history
+  async loadMemberHistory() {
+    const tbody = document.getElementById('member-history-tbody');
+    if (!tbody) return;
+    const { currentUser, role } = this.state;
+    if (!currentUser || role !== 'member') return;
+    const cardId = currentUser.email.replace('@library.ac.lk', '');
+    tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-on-surface-variant italic">Loading...</td></tr>';
+    try {
+      const history = await api.getMemberHistoryByCard(cardId);
+      if (history.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-on-surface-variant italic">No borrowing history.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = history.map(h => {
+        const statusClass = h.status === 'Returned' ? 'bg-secondary-container text-on-secondary-container' : 'bg-error-container text-on-error-container';
+        return `
+          <tr class="hover:bg-surface-container-highest transition-colors">
+            <td class="px-6 py-4 font-bold text-primary text-sm">${h.bookTitle || '-'}</td>
+            <td class="px-6 py-4 text-xs text-on-surface-variant">${h.issueDate ? new Date(h.issueDate).toLocaleDateString() : '-'}</td>
+            <td class="px-6 py-4 text-xs text-on-surface-variant">${h.returnDate ? new Date(h.returnDate).toLocaleDateString() : new Date(h.dueDate).toLocaleDateString()}</td>
+            <td class="px-6 py-4 text-xs font-medium text-primary">${h.issuedBy || 'Admin'}</td>
+            <td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase ${statusClass}">${h.status}</span></td>
+            <td class="px-6 py-4 text-xs font-bold ${h.fine > 0 ? 'text-error' : 'text-on-surface-variant'}">${h.fine > 0 ? 'Rs ' + h.fine : '-'}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-error italic">Failed to load history.</td></tr>';
+    }
+  },
 
   async showBookDetails(bookId) {
     try {
