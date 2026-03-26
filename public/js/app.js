@@ -66,6 +66,18 @@ const app = {
     document.getElementById('settings-btn')?.addEventListener('click', () => {
         this.showToast('Settings panel is under maintenance');
     });
+
+    // Mobile Menu
+    document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+        document.querySelector('.sidebar').classList.toggle('active');
+    });
+
+    // Close sidebar on link click (mobile)
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('active');
+        });
+    });
   },
 
   switchView(viewId) {
