@@ -122,9 +122,19 @@ const app = {
 
   showToast(message, isError = false) {
     const toast = document.getElementById('toast');
+    if (!toast) return console.log("Toast:", message);
+
     toast.textContent = message;
-    toast.className = `toast show ${isError ? 'error' : ''}`;
-    setTimeout(() => { toast.classList.remove('show'); }, 3000);
+    
+    // Style
+    toast.style.borderLeftColor = isError ? 'var(--danger)' : 'var(--primary)';
+    toast.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+    toast.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+      toast.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+    }, 4000);
   },
 
   // ISBN Real-time check logic
@@ -549,6 +559,7 @@ const app = {
         }
 
         // Layout Switching
+        document.body.classList.add('is-admin');
         const publicLayout = document.getElementById('public-layout');
         const adminLayout = document.getElementById('admin-layout');
         if (publicLayout) publicLayout.style.display = 'none';
@@ -576,6 +587,7 @@ const app = {
         if (loginBtn) loginBtn.classList.remove('hidden');
         if (profilePill) { profilePill.classList.add('hidden'); profilePill.classList.remove('flex'); }
         
+        document.body.classList.remove('is-admin');
         const publicLayout = document.getElementById('public-layout');
         const adminLayout = document.getElementById('admin-layout');
         if (publicLayout) publicLayout.style.display = 'flex';
