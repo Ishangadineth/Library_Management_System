@@ -54,6 +54,17 @@ router.post('/issue', checkDb, async (req, res) => {
     // Update book status
     await bookRef.update({ status: 'Loaned' });
 
+    // Mark corresponding cart item as 'Successful Issue' 
+    const cartSnap = await db.collection('cart')
+      .where('memberId', '==', memberId)
+      .where('bookId', '==', bookId)
+      .where('status', '==', 'Pending') 
+      .get();
+      
+    if (!cartSnap.empty) {
+      await db.collection('cart').doc(cartSnap.docs[0].id).update({ status: 'Successful Issue' });
+    }
+
     res.json({ message: 'Book issued successfully', loan });
   } catch (error) {
     res.status(500).json({ error: error.message });

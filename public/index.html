@@ -313,7 +313,7 @@
                 <div id="members-view" class="view d-none">
                     <div class="flex items-end justify-between mb-8">
                         <div>
-                            <h2 class="text-3xl font-headline font-extrabold text-primary">Member Cart</h2>
+                            <h2 class="text-3xl font-headline font-extrabold text-primary">Members Inventory</h2>
                         </div>
                         <button onclick="app.openModal('addMemberModal')" class="px-6 py-2 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold flex items-center space-x-2 shadow-md">
                             <span class="material-symbols-outlined text-sm">person_add</span> <span>Add Member</span>
@@ -325,6 +325,7 @@
                                 <tr class="bg-surface-container-low">
                                     <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase">Member Details</th>
                                     <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase">Card ID / Phone</th>
+                                    <th class="px-6 py-4 text-xs font-bold text-on-surface-variant uppercase text-right admin-only">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="members-table-body" class="divide-y divide-outline-variant/10">
@@ -373,14 +374,22 @@
                 <div id="cart-view" class="view d-none">
                     <div class="flex items-end justify-between mb-8">
                         <div>
-                            <h2 class="text-3xl font-headline font-extrabold text-primary">Cart Requests</h2>
-                            <p class="text-on-surface-variant">Books pre-requested by members.</p>
+                            <h2 class="text-3xl font-headline font-extrabold text-primary">Member Cart Requests</h2>
+                            <p class="text-on-surface-variant text-sm font-medium">Pre-requested books that need issuing.</p>
                         </div>
                         <button onclick="app.loadCartView()" class="px-4 py-2 bg-surface-container-highest rounded-xl text-sm font-bold flex items-center gap-2 text-primary hover:bg-surface-container-high transition-colors">
                             <span class="material-symbols-outlined text-sm">refresh</span> Refresh
                         </button>
                     </div>
-                    <div id="cart-list-container" class="space-y-3">
+
+                    <div class="flex flex-wrap gap-2 mb-8">
+                        <button onclick="app.filterCart('All', this)" class="cart-filter px-4 py-2 rounded-full bg-primary text-white text-[10px] font-bold uppercase tracking-wider shadow-sm transition-all focus:outline-none">All</button>
+                        <button onclick="app.filterCart('Successful Issue', this)" class="cart-filter px-4 py-2 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider hover:bg-secondary hover:text-white transition-all focus:outline-none">Successful</button>
+                        <button onclick="app.filterCart('Pending', this)" class="cart-filter px-4 py-2 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider hover:bg-warning hover:text-black transition-all focus:outline-none">Pending</button>
+                        <button onclick="app.filterCart('Expired', this)" class="cart-filter px-4 py-2 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all focus:outline-none">Expired</button>
+                    </div>
+
+                    <div id="cart-list-container" class="space-y-4">
                         <p class="text-on-surface-variant italic">Loading cart requests...</p>
                     </div>
                 </div>
@@ -474,6 +483,64 @@
                     <label class="text-xs font-bold text-on-surface-variant uppercase">Full Name</label>
                     <input type="text" id="memberName" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
                 </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase">Card ID Mode</label>
+                        <select id="cardIdMode" onchange="app.toggleCardIdMode(this.value)" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
+                            <option value="manual">Manual</option>
+                            <option value="auto">Auto-Generate</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase">Card ID</label>
+                        <input type="text" id="memberCardId" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm font-mono">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase">Phone / Contact</label>
+                        <input type="text" id="memberPhone" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase">Address</label>
+                        <input type="text" id="memberAddress" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase">Birthday</label>
+                        <input type="date" id="memberBirthday" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-on-surface-variant uppercase">NIC Number</label>
+                        <input type="text" id="memberNIC" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm" placeholder="Optional">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-on-surface-variant uppercase">Profile Photo URL</label>
+                    <input type="text" id="memberPhoto" class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-md mt-6">Create Membership</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Member Modal -->
+    <div id="addMemberModal" class="modal">
+        <div class="bg-surface-container-lowest p-8 rounded-2xl max-w-lg w-full shadow-2xl m-4 relative flex flex-col">
+            <button onclick="app.closeModal('addMemberModal')" class="absolute top-4 right-4 text-outline hover:text-error bg-transparent border-none">
+                <span class="material-symbols-outlined text-2xl">close</span>
+            </button>
+            <h2 class="text-2xl font-bold text-primary mb-6 font-headline tracking-tight">Register Member</h2>
+            <form id="addMemberForm" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-on-surface-variant uppercase">Full Name</label>
+                    <input type="text" id="memberName" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm">
+                </div>
                 <div>
                     <label class="text-xs font-bold text-on-surface-variant uppercase">Card ID</label>
                     <input type="text" id="memberCardId" required class="w-full bg-surface-container-highest px-4 py-2 rounded-lg border-none mt-1 text-sm font-mono">
@@ -542,7 +609,7 @@
                     <button onclick="app.saveBookNotes()" class="mt-3 bg-primary hover:bg-primary-container transition-colors text-white px-5 py-2 rounded-xl text-sm font-bold shadow-sm">Save Notes</button>
                 </div>
                 
-                <div>
+                <div class="admin-only">
                     <h3 class="text-base font-bold text-primary mb-4 flex items-center gap-2 font-headline"><span class="material-symbols-outlined text-lg">history</span> Borrowing History</h3>
                     <div class="bg-surface-container-lowest rounded-xl border border-outline-variant/10 overflow-hidden">
                         <table class="w-full text-left text-xs">

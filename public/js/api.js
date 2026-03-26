@@ -60,6 +60,18 @@ const api = {
     if (!res.ok) throw new Error((await res.json()).error);
     return res.json();
   },
+  async updateMember(id, data) {
+    const res = await fetch(`${API_BASE_URL}/members/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  async getLastMemberCardId() {
+    const res = await fetch(`${API_BASE_URL}/members/card-id/last`);
+    return res.json();
+  },
   async deleteMember(id) {
     const res = await fetch(`${API_BASE_URL}/members/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error((await res.json()).error);

@@ -104,7 +104,17 @@ router.post('/by-card/:cardId/cart', checkDb, async (req, res) => {
     const existing = await db.collection('cart').where('memberId', '==', memberId).where('bookId', '==', bookId).get();
     if (!existing.empty) return res.status(400).json({ error: 'Book already in cart' });
 
-    const ref = await db.collection('cart').add({ memberId, bookId, bookTitle, bookAuthor, coverImage: coverImage || '', addedAt: new Date().toISOString() });
+    const ref = await db.collection('cart').add({ 
+      memberId, 
+      memberCardId: req.params.cardId,
+      memberName: memberSnap.docs[0].data().name,
+      bookId, 
+      bookTitle, 
+      bookAuthor, 
+      coverImage: coverImage || '', 
+      addedAt: new Date().toISOString(),
+      status: 'Pending' // Initial status
+    });
     res.status(201).json({ id: ref.id, bookId, bookTitle });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -127,7 +137,23 @@ router.get('/cart/all', checkDb, async (req, res) => {
   try {
     const cartSnap = await db.collection('cart').get();
     const items = [];
-    cartSnap.forEach(doc => items.push({ id: doc.id, ...doc.data() }));
+    const now = new Date();
+    
+    cartSnap.forEach(doc => {
+      const data = doc.data();
+      let status = data.status || 'Pending';
+      
+      // Calculate Expiry (10 days)
+      if (status === 'Pending') {
+        const addedAt = new Date(data.addedAt);
+        const diffTime = Math.abs(now - addedAt);
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        if (diffDays > 10) status = 'Expired';
+      }
+      
+      items.push({ id: doc.id, ...data, status });
+    });
+    
     // Sort by addedAt newest first
     items.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
     res.json(items);
@@ -170,7 +196,7 @@ router.get('/:id/history', checkDb, async (req, res) => {
 // Add a new member
 router.post('/', checkDb, async (req, res) => {
   try {
-    const { name, phone, address, memberCardId, photoUrl } = req.body;
+    const { name, phone, address, memberCardId, photoUrl, birthday, nicNumber } = req.body;
     
     // Check if Member Card ID already exists in Firestore
     const query = await db.collection('members').where('memberCardId', '==', memberCardId).get();
@@ -190,11 +216,8 @@ router.post('/', checkDb, async (req, res) => {
       });
       console.log(`Firebase account created for ${email}`);
     } catch (authErr) {
-      // If email is already in use, it's fine (maybe previously added and deleted from Firestore)
       if (authErr.code !== 'auth/email-already-in-use') {
         console.error('Firebase Auth creation failed:', authErr.message);
-        // We can choose to fail the request or continue. Here I'll continue
-        // as the Firestore entry is the primary reference.
       }
     }
 
@@ -204,6 +227,8 @@ router.post('/', checkDb, async (req, res) => {
       address,
       memberCardId,
       photoUrl: photoUrl || '',
+      birthday: birthday || '',
+      nicNumber: nicNumber || '',
       createdAt: new Date().toISOString(),
       qrCode: `MEMBER-${memberCardId}`
     };
@@ -235,6 +260,39 @@ router.delete('/:id', checkDb, async (req, res) => {
     res.json({ message: 'Member deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Update a member
+router.patch('/:id', checkDb, async (req, res) => {
+  try {
+    const updates = req.body;
+    await db.collection('members').doc(req.params.id).update(updates);
+    res.json({ message: 'Member updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET the last member card ID for auto-generation
+router.get('/card-id/last', checkDb, async (req, res) => {
+  try {
+    const snapshot = await db.collection('members').orderBy('memberCardId', 'desc').limit(1).get();
+    if (snapshot.empty) {
+      return res.json({ lastId: '1000' }); // Start from 1000 if none exist
+    }
+    const lastId = snapshot.docs[0].data().memberCardId;
+    res.json({ lastId });
+  } catch (error) {
+    // If ordering by memberCardId fails (maybe it's not indexed or string vs number), 
+    // we catch and try to find manually
+    const all = await db.collection('members').get();
+    let max = 0;
+    all.forEach(doc => {
+      const id = parseInt(doc.data().memberCardId);
+      if (id > max) max = id;
+    });
+    res.json({ lastId: max > 0 ? max.toString() : '1000' });
   }
 });
 

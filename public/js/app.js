@@ -231,26 +231,53 @@ const app = {
     document.getElementById('admin-layout').style.display = 'none';
     document.getElementById('public-layout').style.display = 'flex';
   },
-
   async loadFeaturedBooks(booksToRender) {
     try {
       if (!this.state.books || this.state.books.length === 0) {
         this.state.books = await api.getBooks();
       }
       
+      const cartItems = await api.getAllCartItems();
+      const pendingCart = cartItems.filter(item => item.status === 'Pending' || (!item.status && (new Date() - new Date(item.addedAt)) / (1000 * 60 * 60 * 24) <= 10));
+
       const books = booksToRender || this.state.books;
       const grid = document.getElementById('dashboard-books-grid');
       if (!grid) return;
       
       grid.innerHTML = '';
       
-      books.forEach(book => {
+      // Group by ISBN to handle availability logic across copies
+      const groupedBooks = {};
+      books.forEach(b => {
+        if (!groupedBooks[b.isbn]) {
+          groupedBooks[b.isbn] = { ...b, copies: [] };
+        }
+        groupedBooks[b.isbn].copies.push(b);
+      });
+
+      Object.values(groupedBooks).forEach(book => {
         const coverUrl = book.coverImage || 'https://images.unsplash.com/photo-1543004471-240ce8de38f9?q=80&w=1974&auto=format&fit=crop';
-        let statusBg = book.status === 'AVAILABLE' ? 'bg-secondary-container' : 'bg-error-container';
-        let statusText = book.status === 'AVAILABLE' ? 'text-on-secondary-container' : 'text-on-error-container';
-        if (book.status === 'RESERVED') {
-            statusBg = 'bg-tertiary-fixed';
+        
+        // Availability Logic: available copies - pending cart requests for this ISBN
+        const availableCopies = book.copies.filter(c => c.status === 'Available');
+        const cartForThisIsbn = pendingCart.filter(item => item.isbn === book.isbn || (!item.isbn && item.bookTitle === book.title)); // Fallback to Title
+        const netAvailable = availableCopies.length - cartForThisIsbn.length;
+
+        let statusBg = 'bg-secondary-container';
+        let statusText = 'text-on-secondary-container';
+        let statusLabel = 'AVAILABLE';
+
+        if (netAvailable <= 0) {
+            statusBg = 'bg-tertiary-fixed-dim';
             statusText = 'text-on-tertiary-fixed-variant';
+            statusLabel = 'IN CART / RESERVED';
+        }
+        
+        // If all copies are actually LOANED out regardless of cart
+        if (availableCopies.length === 0) {
+            statusBg = 'bg-error-container';
+            statusText = 'text-on-error-container';
+            statusLabel = 'LOANED OUT';
         }
 
         grid.innerHTML += `
@@ -261,7 +288,7 @@ const app = {
                 : `<span class="material-symbols-outlined text-outline-variant text-4xl">book</span>`
               }
               <div class="absolute top-3 right-3">
-                <span class="px-3 py-1 ${statusBg} ${statusText} text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">${book.status}</span>
+                <span class="px-3 py-1 ${statusBg} ${statusText} text-[10px] font-bold uppercase tracking-widest rounded-full shadow-sm">${statusLabel}</span>
               </div>
             </div>
             <div class="p-5 flex flex-col flex-1">
@@ -270,14 +297,14 @@ const app = {
               <p class="text-sm text-on-surface-variant mb-4 line-clamp-1">${book.author}</p>
               <div class="mt-auto flex gap-2">
                 <button onclick="event.stopPropagation();app.showBookDetails('${book.id}')" class="flex-1 py-2 bg-surface-container-high text-primary font-bold text-xs rounded-lg hover:bg-primary-container hover:text-white transition-colors">View Details</button>
-                ${this.state.role === 'member' ? `<button onclick="event.stopPropagation();app.addToCart('${book.id}')" class="px-3 py-2 bg-secondary-container text-on-secondary-container font-bold text-xs rounded-lg hover:bg-secondary hover:text-white transition-colors" title="Add to Cart"><span class="material-symbols-outlined text-sm">add_shopping_cart</span></button>` : ''}
+                <button onclick="event.stopPropagation();app.addToCart('${book.id}')" class="px-3 py-2 bg-secondary-container text-on-secondary-container font-bold text-xs rounded-lg hover:bg-secondary hover:text-white transition-colors" title="Add to Cart"><span class="material-symbols-outlined text-sm">add_shopping_cart</span></button>
               </div>
             </div>
           </div>
         `;
       });
     } catch (e) { console.error(e); }
-  },
+  },},
 
   async loadBooksView() {
     try {
@@ -316,6 +343,12 @@ const app = {
                   ${book.status}
               </span>
             </td>
+            <td class="px-6 py-4 text-right admin-only">
+              <div class="flex items-center justify-end space-x-2">
+                <button onclick="event.stopPropagation();app.editBook('${book.id}')" class="p-2 text-primary hover:bg-primary-container hover:text-white rounded-lg transition-colors"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="event.stopPropagation();app.deleteBook('${book.id}')" class="p-2 text-error hover:bg-error-container rounded-lg transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button>
+              </div>
+            </td>
           </tr>
         `;
       });
@@ -348,7 +381,13 @@ const app = {
               </div>
             </td>
             <td class="px-6 py-4 font-mono text-[11px] text-on-surface-variant font-medium">
-              ${member.memberCardId}
+              ${member.memberCardId} <br> <span class="text-[9px]">${member.phone}</span>
+            </td>
+            <td class="px-6 py-4 text-right admin-only">
+              <div class="flex items-center justify-end space-x-2">
+                <button onclick="event.stopPropagation();app.editMember('${member.id}')" class="p-2 text-primary hover:bg-primary-container hover:text-white rounded-lg transition-colors"><span class="material-symbols-outlined text-sm">edit</span></button>
+                <button onclick="event.stopPropagation();app.deleteMember('${member.id}')" class="p-2 text-error hover:bg-error-container rounded-lg transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button>
+              </div>
             </td>
           </tr>
         `;
@@ -366,13 +405,17 @@ const app = {
       const profile = document.getElementById('member-profile-info');
       const photo = member.photoUrl || `https://ui-avatars.com/api/?name=${member.name}`;
       profile.innerHTML = `
-          <div class="flex items-center">
-              <img src="${photo}" style="width:100px;border-radius:50%;margin-right:20px;" />
+          <div class="flex items-center space-x-6">
+              <img src="${photo}" class="w-24 h-24 rounded-full border-4 border-primary/10 shadow-lg" />
               <div>
-                  <h1>${member.name}</h1>
-                  <p>${member.address}</p>
-                  <p><strong>PH: ${member.phone}</strong></p>
-                  <p>Membership: ${new Date(member.createdAt).toLocaleDateString()}</p>
+                  <h1 class="text-3xl font-extrabold text-primary font-headline">${member.name}</h1>
+                  <p class="text-on-surface-variant font-medium flex items-center gap-2 mt-1"><span class="material-symbols-outlined text-sm">location_on</span> ${member.address}</p>
+                  <p class="text-on-surface-variant font-medium flex items-center gap-2 mt-1"><span class="material-symbols-outlined text-sm">call</span> ${member.phone}</p>
+                  <div class="flex gap-4 mt-3">
+                    <p class="text-[10px] uppercase font-bold text-outline-variant bg-surface-container-highest px-3 py-1 rounded-full">NIC: ${member.nicNumber || 'N/A'}</p>
+                    <p class="text-[10px] uppercase font-bold text-outline-variant bg-surface-container-highest px-3 py-1 rounded-full">Birthday: ${member.birthday || 'N/A'}</p>
+                  </div>
+                  <p class="text-xs text-primary font-bold mt-4">Membership: ${new Date(member.createdAt).toLocaleDateString()}</p>
               </div>
           </div>
       `;
@@ -439,6 +482,22 @@ const app = {
     }
   },
 
+  async editBook(id) {
+      const book = this.state.books.find(b => b.id === id);
+      if(!book) return;
+      this.state.currentEditingBookId = id;
+      this.openModal('addBookModal');
+      document.getElementById('bookIsbn').value = book.isbn;
+      document.getElementById('bookBatch').value = book.batchNumber;
+      document.getElementById('bookTitle').value = book.title;
+      document.getElementById('bookAuthor').value = book.author;
+      document.getElementById('bookPublisher').value = book.publisher;
+      document.getElementById('bookCategory').value = book.category;
+      document.getElementById('bookCover').value = book.coverImage;
+      const btn = document.querySelector('#addBookForm button[type="submit"]');
+      btn.textContent = 'Update Book';
+  },
+
   async handleAddMember(e) {
     e.preventDefault();
     const data = {
@@ -447,16 +506,99 @@ const app = {
       address: document.getElementById('memberAddress').value,
       memberCardId: document.getElementById('memberCardId').value,
       photoUrl: document.getElementById('memberPhoto').value,
+      birthday: document.getElementById('memberBirthday').value,
+      nicNumber: document.getElementById('memberNIC').value,
     };
     try {
-      await api.addMember(data);
-      this.showToast('New Member Registered!');
+      if (this.state.currentEditingMemberId) {
+          await api.updateMember(this.state.currentEditingMemberId, data);
+          this.showToast('Member Updated Successfully!');
+      } else {
+          await api.addMember(data);
+          this.showToast('Membership Created Successfully!');
+      }
       this.closeModal('addMemberModal');
       document.getElementById('addMemberForm').reset();
+      this.state.currentEditingMemberId = null;
       this.loadMembersView();
     } catch (error) {
       this.showToast(error.message, true);
     }
+  },
+
+  async deleteMember(id) {
+    if(!confirm("Delete this member? This will also remove their portal access.")) return;
+    try {
+        await api.deleteMember(id);
+        this.showToast('Member deleted');
+        this.loadMembersView();
+    } catch (error) {
+        this.showToast(error.message, true);
+    }
+  },
+
+  async editMember(id) {
+      const m = this.state.members.find(m => m.id === id);
+      if(!m) return;
+      this.state.currentEditingMemberId = id;
+      this.openModal('addMemberModal');
+      document.getElementById('memberName').value = m.name;
+      document.getElementById('memberCardId').value = m.memberCardId;
+      document.getElementById('memberPhone').value = m.phone;
+      document.getElementById('memberAddress').value = m.address;
+      document.getElementById('memberBirthday').value = m.birthday || '';
+      document.getElementById('memberNIC').value = m.nicNumber || '';
+      document.getElementById('memberPhoto').value = m.photoUrl;
+      const btn = document.querySelector('#addMemberForm button[type="submit"]');
+      btn.textContent = 'Update Member';
+  },
+
+  async toggleCardIdMode(mode) {
+      const input = document.getElementById('memberCardId');
+      if (mode === 'auto') {
+          input.disabled = true;
+          input.value = 'Generating...';
+          try {
+              const res = await api.getLastMemberCardId();
+              const nextId = (parseInt(res.lastId) + 1).toString();
+              input.value = nextId;
+          } catch(e) {
+              input.value = '1001';
+          }
+      } else {
+          input.disabled = false;
+          input.value = '';
+      }
+  },
+
+  async addToCart(bookId) {
+      if (!this.state.currentUser) {
+          this.showToast('Please sign in to add items to your cart', true);
+          this.openModal('loginModal');
+          return;
+      }
+      
+      if (this.state.role !== 'member') {
+          this.showToast('Admin accounts cannot use member cart', true);
+          return;
+      }
+
+      const book = this.state.books.find(b => b.id === bookId);
+      if(!book) return;
+
+      try {
+          const cardId = this.state.currentUser.email.split('@')[0];
+          await api.addToMemberCart(cardId, {
+              bookId: book.id,
+              bookTitle: book.title,
+              bookAuthor: book.author,
+              coverImage: book.coverImage
+          });
+          this.showToast('Added to Cart Successfully!');
+          this.loadCartView();
+      } catch (e) {
+          this.showToast(e.message, true);
+      }
   },
 
   async handleIssueBook(e) {
@@ -558,10 +700,17 @@ const app = {
            userInitials.textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
         }
 
-        // Layout Switching
-        document.body.classList.add('is-admin');
+        // Layout Switching & Role Class
+        if (role === 'admin' || role === 'superadmin') {
+            document.body.classList.add('is-admin');
+        } else {
+            document.body.classList.remove('is-admin');
+        }
+
         const publicLayout = document.getElementById('public-layout');
         const adminLayout = document.getElementById('admin-layout');
+        
+        // Members see portal by default too, but with restricted sidebar
         if (publicLayout) publicLayout.style.display = 'none';
         if (adminLayout) adminLayout.style.display = 'flex';
 
@@ -569,6 +718,8 @@ const app = {
         document.querySelectorAll('.nav-links a[data-target]').forEach(link => {
           const target = link.getAttribute('data-target');
           const memberAllowed = ['dashboard-view', 'member-history-view', 'cart-view'];
+          // Also allow public catalog access via goToPublicCatalog if needed, 
+          // but here we manage the portal sidebar links
           if (role === 'member') {
             link.style.display = memberAllowed.includes(target) ? 'flex' : 'none';
           } else {
@@ -708,8 +859,7 @@ const app = {
   checkLogin() {},
   updateAdminUI() { this.updateAuthUI(); },
 
-  // Cart: Load all cart requests (admin/member view)
-  async loadCartView() {
+  // Cart: Load all cart requests (admin/member view)  async loadCartView(filter = 'All') {
     const container = document.getElementById('cart-list-container');
     if (!container) return;
     const { currentUser, role } = this.state;
@@ -717,54 +867,84 @@ const app = {
     
     try {
       let items = await api.getAllCartItems();
-      
+      this.state.cartItems = items; // Store for filtering
+
       if (role === 'member') {
         const cardId = currentUser.email.split('@')[0];
-        const member = await api.getMemberByCard(cardId);
-        items = items.filter(item => item.memberId === member.id);
-        
-        // Update View Title
-        const title = document.querySelector('#cart-view h2');
-        if (title) title.textContent = 'My Requested Cart';
-      } else {
-        const title = document.querySelector('#cart-view h2');
-        if (title) title.textContent = 'Member Cart Requests';
+        items = items.filter(item => item.memberCardId === cardId);
       }
 
-      if (items.length === 0) {
-        container.innerHTML = '<p class="text-on-surface-variant italic px-6 mt-4">No cart requests found.</p>';
-        const badge = document.getElementById('cart-count-badge');
-        if (badge && role !== 'member') badge.classList.add('hidden');
-        return;
+      // Apply Filter
+      if (filter !== 'All') {
+        items = items.filter(item => item.status === filter);
       }
       
-      // Update badge (admin view only)
-      if (role !== 'member') {
-        const badge = document.getElementById('cart-count-badge');
-        if (badge) { badge.textContent = items.length; badge.classList.remove('hidden'); }
+      if (items.length === 0) {
+        container.innerHTML = `<p class="text-on-surface-variant italic px-6 mt-4">No ${filter === 'All' ? '' : filter} requests found.</p>`;
+        return;
       }
 
-      container.innerHTML = items.map(item => `
-        <div class="flex items-center justify-between bg-surface-container-lowest rounded-xl px-6 py-4 border border-outline-variant/10 shadow-sm mx-6 mb-4">
-          <div class="flex items-center gap-4">
-            ${item.coverImage ? `<img src="${item.coverImage}" class="w-10 h-14 object-cover rounded-lg shadow-sm">` : `<div class="w-10 h-14 bg-surface-container rounded-lg flex items-center justify-center"><span class="material-symbols-outlined text-outline">book</span></div>`}
-            <div>
-              <p class="text-sm font-bold text-primary">${item.bookTitle}</p>
-              <p class="text-xs text-on-surface-variant">${item.bookAuthor || ''}</p>
-              <p class="text-[10px] text-on-surface-variant mt-1">Requested: ${new Date(item.addedAt).toLocaleString()}</p>
+      container.innerHTML = items.map(item => {
+        let statusColor = 'bg-surface-container-highest text-on-surface-variant';
+        if (item.status === 'Successful Issue') statusColor = 'bg-secondary text-white';
+        if (item.status === 'Expired') statusColor = 'bg-error text-white';
+        if (item.status === 'Pending') statusColor = 'bg-warning text-black';
+
+        return `
+          <div class="flex items-center justify-between bg-surface-container-lowest rounded-xl px-6 py-4 border border-outline-variant/10 shadow-sm mx-4 mb-2 hover:border-primary/30 transition-all cursor-pointer" onclick="app.showMemberByCardId('${item.memberCardId}')">
+            <div class="flex items-center gap-4">
+              ${item.coverImage ? `<img src="${item.coverImage}" class="w-10 h-14 object-cover rounded-lg shadow-sm">` : `<div class="w-10 h-14 bg-surface-container rounded-lg flex items-center justify-center"><span class="material-symbols-outlined text-outline">book</span></div>`}
+              <div>
+                <p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">${item.status || 'Pending'}</p>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-primary">${item.bookTitle}</span>
+                  <span class="text-[10px] text-outline-variant bg-surface-container-highest px-2 py-0.5 rounded font-mono">${item.memberCardId}</span>
+                </div>
+                <p class="text-xs font-bold text-on-surface-variant mt-0.5">${item.memberName || 'Unknown Member'}</p>
+                <p class="text-[10px] text-on-surface-variant/70 mt-1">Requested: ${new Date(item.addedAt).toLocaleString()}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+               <div class="hidden md:block text-right">
+                  <p class="text-[9px] font-bold uppercase text-outline-variant">Validity</p>
+                  <p class="text-[11px] font-bold text-on-surface-variant">10 Days</p>
+               </div>
+               <button onclick="event.stopPropagation();app.dismissCartItem('${item.id}')" class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/50 rounded-full transition-all" title="Dismiss">
+                 <span class="material-symbols-outlined text-sm">remove_shopping_cart</span>
+               </button>
             </div>
           </div>
-          <div class="flex items-center gap-3">
-            <button onclick="app.dismissCartItem('${item.id}')" class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/50 rounded-full transition-all" title="${role === 'member' ? 'Cancel Request' : 'Dismiss / Remove'}">
-              <span class="material-symbols-outlined text-sm">${role === 'member' ? 'cancel' : 'remove_shopping_cart'}</span>
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     } catch (e) {
       container.innerHTML = '<p class="text-on-surface-variant italic px-6 mt-4 text-error">Failed to load cart items.</p>';
     }
   },
+
+  async filterCart(status, btn) {
+    // Update active UI
+    document.querySelectorAll('.cart-filter').forEach(b => {
+      b.classList.remove('bg-primary', 'text-white', 'shadow-sm');
+      b.classList.add('bg-surface-container-highest', 'text-on-surface-variant');
+    });
+    btn.classList.remove('bg-surface-container-highest', 'text-on-surface-variant');
+    btn.classList.add('bg-primary', 'text-white', 'shadow-sm');
+    
+    this.loadCartView(status);
+  },
+
+  async showMemberByCardId(cardId) {
+    if (!cardId) return;
+    try {
+      if (!this.state.members) this.state.members = await api.getMembers();
+      const member = this.state.members.find(m => m.memberCardId === cardId);
+      if (member) {
+        this.showMemberDetail(member.id);
+      } else {
+        this.showToast('Member details not found', true);
+      }
+    } catch (e) { console.error(e); }
+  },},
 
   async dismissCartItem(cartItemId) {
     try {
@@ -788,14 +968,17 @@ const app = {
     const cardId = currentUser.email.replace('@library.ac.lk', '');
     const book = this.state.books.find(b => b.id === bookId);
     if (!book) return this.showToast('Book not found', true);
+    
     try {
       await api.addToMemberCart(cardId, {
         bookId: book.id,
+        isbn: book.isbn, // Crucial for availability logic
         bookTitle: book.title,
         bookAuthor: book.author,
         coverImage: book.coverImage || ''
       });
-      this.showToast(`"${book.title}" added to your cart!`);
+      this.showToast(`"${book.title}" added to your cart! Please issue this book within 10 days.`);
+      this.loadFeaturedBooks(); // Refresh availability tags
     } catch (e) {
       this.showToast(e.message, true);
     }
@@ -948,8 +1131,16 @@ const app = {
     const icon1 = document.getElementById('theme-toggle');
     const icon2 = document.getElementById('theme-toggle-admin');
     const newIcon = isDark ? 'light_mode' : 'dark_mode';
-    if (icon1) icon1.innerText = newIcon;
-    if (icon2) icon2.innerText = newIcon;
+    if (icon1) {
+        const span = icon1.querySelector('span');
+        if (span) span.textContent = newIcon;
+        else icon1.textContent = newIcon; // Fallback for plain btn
+    }
+    if (icon2) {
+        const span = icon2.querySelector('span');
+        if (span) span.textContent = newIcon;
+        else icon2.textContent = newIcon;
+    }
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
   },
 
