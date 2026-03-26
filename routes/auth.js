@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { admin, db } = require('../config/firebaseConfig');
 
-const SUPER_ADMIN_EMAIL = 'ishanga20051223@gmail.com';
+const SUPER_ADMIN_EMAILS = ['ishanga20051223@gmail.com', 'admin@ishangadineth.online'];
 
 // Middleware: Verify Firebase ID token and attach user + role
 async function verifyToken(req, res, next) {
@@ -19,7 +19,7 @@ async function verifyToken(req, res, next) {
     const roleDoc = await db.collection('roles').doc(decoded.email).get();
     if (roleDoc.exists) {
       req.role = roleDoc.data().role;
-    } else if (decoded.email === SUPER_ADMIN_EMAIL) {
+    } else if (SUPER_ADMIN_EMAILS.includes(decoded.email)) {
       req.role = 'superadmin';
     } else {
       req.role = 'member';
@@ -42,7 +42,7 @@ router.post('/verify', verifyToken, async (req, res) => {
   const { email } = req.user;
 
   // Auto-seed superadmin role in Firestore if not present
-  if (email === SUPER_ADMIN_EMAIL) {
+  if (SUPER_ADMIN_EMAILS.includes(email)) {
     const superRef = db.collection('roles').doc(email);
     const snap = await superRef.get();
     if (!snap.exists) {
@@ -76,7 +76,7 @@ router.get('/admins', verifyToken, requireSuperAdmin, async (req, res) => {
 router.post('/add-admin', verifyToken, requireSuperAdmin, async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ error: 'Email is required' });
-  if (email === SUPER_ADMIN_EMAIL) return res.status(400).json({ error: 'Cannot modify superadmin role' });
+  if (SUPER_ADMIN_EMAILS.includes(email)) return res.status(400).json({ error: 'Cannot modify superadmin role' });
 
   try {
     await db.collection('roles').doc(email).set({
@@ -94,7 +94,7 @@ router.post('/add-admin', verifyToken, requireSuperAdmin, async (req, res) => {
 // Remove an admin (superadmin only)
 router.delete('/remove-admin/:email', verifyToken, requireSuperAdmin, async (req, res) => {
   const email = decodeURIComponent(req.params.email);
-  if (email === SUPER_ADMIN_EMAIL) return res.status(400).json({ error: 'Cannot remove superadmin' });
+  if (SUPER_ADMIN_EMAILS.includes(email)) return res.status(400).json({ error: 'Cannot remove superadmin' });
   try {
     await db.collection('roles').doc(email).delete();
     res.json({ success: true, removed: email });
