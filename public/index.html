@@ -195,6 +195,9 @@
                 <p class="text-xs text-on-surface-variant font-medium mt-1">Administration</p>
             </div>
             <nav class="flex-1 space-y-1 nav-links">
+                <a href="#" onclick="app.goToPublicCatalog()" class="flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors font-headline font-semibold tracking-wide text-sm">
+                    <span class="material-symbols-outlined mr-3">home</span> Home
+                </a>
                 <a href="#" data-target="dashboard-view" class="active flex items-center px-6 py-3 bg-white text-primary rounded-r-full shadow-sm font-headline font-bold tracking-wide text-sm">
                     <span class="material-symbols-outlined mr-3">dashboard</span> Dashboard
                 </a>
@@ -206,6 +209,9 @@
                 </a>
                 <a href="#" data-target="circulation-view" class="flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors font-headline font-semibold tracking-wide text-sm">
                     <span class="material-symbols-outlined mr-3">swap_horiz</span> Issue/Return
+                </a>
+                <a href="#" data-target="member-history-view" class="flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors font-headline font-semibold tracking-wide text-sm">
+                    <span class="material-symbols-outlined mr-3">history</span> Issue & Return History
                 </a>
                 <a href="#" data-target="cart-view" class="flex items-center px-6 py-3 text-on-surface-variant hover:bg-surface-container-high transition-colors font-headline font-semibold tracking-wide text-sm">
                     <span class="material-symbols-outlined mr-3">shopping_cart</span> Cart List
@@ -243,8 +249,8 @@
                     </button>
                     <span id="live-clock" class="font-mono text-sm text-on-surface-variant font-bold"></span>
                     <div class="flex items-center space-x-3">
-                        <span class="text-sm font-headline font-bold text-primary">Admin Control</span>
-                        <div class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold">AD</div>
+                        <span id="admin-control-text" class="text-sm font-headline font-bold text-primary">Admin Control</span>
+                        <div id="user-initials" class="w-10 h-10 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-bold">AD</div>
                     </div>
                 </div>
             </header>
@@ -260,19 +266,19 @@
                     </div>
                     <div class="grid grid-cols-4 gap-6 mb-12 flex-wrap" id="stats-grid">
                         <div class="col-span-1 min-w-[200px] bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
-                            <h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Total Books</h3>
+                            <h3 id="stat-label-1" class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Total Books</h3>
                             <div class="text-3xl font-headline font-extrabold text-primary" id="stat-total-books">0</div>
                         </div>
                         <div class="col-span-1 min-w-[200px] bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
-                            <h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Borrowed</h3>
+                            <h3 id="stat-label-2" class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Borrowed</h3>
                             <div class="text-3xl font-headline font-extrabold text-secondary" id="stat-borrowed">0</div>
                         </div>
                         <div class="col-span-1 min-w-[200px] bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
-                            <h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Overdue</h3>
+                            <h3 id="stat-label-3" class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Overdue</h3>
                             <div class="text-3xl font-headline font-extrabold text-error" id="stat-overdue">0</div>
                         </div>
                         <div class="col-span-1 min-w-[200px] bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/10">
-                            <h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Members</h3>
+                            <h3 id="stat-label-4" class="text-on-surface-variant text-xs font-headline font-bold uppercase mb-1">Members</h3>
                             <div class="text-3xl font-headline font-extrabold text-primary" id="stat-members">0</div>
                         </div>
                     </div>

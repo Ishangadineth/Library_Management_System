@@ -122,5 +122,9 @@ const api = {
   async getDashboardStats() {
     const res = await fetch(`${API_BASE_URL}/dashboard/stats`);
     return res.json();
+  },
+  async getMemberStats(cardId) {
+    const res = await fetch(`${API_BASE_URL}/members/by-card/${cardId}/stats`);
+    return res.json();
   }
 };

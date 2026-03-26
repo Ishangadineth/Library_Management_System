@@ -151,24 +151,58 @@ const app = {
 
   // View Loaders
   async loadDashboard() {
+    const { currentUser, role } = this.state;
     try {
-      const stats = await api.getDashboardStats();
-      const elTotal = document.getElementById('stat-total-books');
-      if (elTotal) elTotal.textContent = stats.totalBooks || 0;
-      
-      const elMembers = document.getElementById('stat-members');
-      if (elMembers) elMembers.textContent = stats.totalMembers || 0;
-      
-      const elBorrowed = document.getElementById('stat-borrowed');
-      if (elBorrowed) elBorrowed.textContent = stats.activeLoans || 0;
-      
-      const elOverdue = document.getElementById('stat-overdue');
-      if (elOverdue) elOverdue.textContent = stats.overdue || 0;
+      if (role === 'member') {
+        const cardId = currentUser.email.split('@')[0];
+        const stats = await api.getMemberStats(cardId);
+        
+        // Update Labels for Member
+        document.getElementById('stat-label-1').textContent = 'Total Borrowed'; // Total loans ever
+        document.getElementById('stat-label-2').textContent = 'Currently Out';
+        document.getElementById('stat-label-3').textContent = 'Overdue';
+        document.getElementById('stat-label-4').textContent = 'Pending Fines (Rs.)';
+
+        // Update Counts
+        document.getElementById('stat-total-books').textContent = stats.totalLoans || 0;
+        document.getElementById('stat-borrowed').textContent = stats.currentlyBorrowed || 0;
+        document.getElementById('stat-overdue').textContent = stats.overdue || 0;
+        document.getElementById('stat-members').textContent = stats.totalFine || 0;
+        
+        // Change Subtitle
+        const subtitle = document.querySelector('#dashboard-view p');
+        if (subtitle) subtitle.textContent = `Welcome back, ${currentUser.displayName || 'Member'}`;
+      } else {
+        const stats = await api.getDashboardStats();
+        
+        // Restore Admin Labels
+        document.getElementById('stat-label-1').textContent = 'Total Books';
+        document.getElementById('stat-label-2').textContent = 'Borrowed';
+        document.getElementById('stat-label-3').textContent = 'Overdue';
+        document.getElementById('stat-label-4').textContent = 'Members';
+
+        document.getElementById('stat-total-books').textContent = stats.totalBooks || 0;
+        document.getElementById('stat-borrowed').textContent = stats.activeLoans || 0;
+        document.getElementById('stat-overdue').textContent = stats.overdue || 0;
+        document.getElementById('stat-members').textContent = stats.totalMembers || 0;
+
+        const subtitle = document.querySelector('#dashboard-view p');
+        if (subtitle) subtitle.textContent = 'System Administration Status';
+      }
 
       this.loadFeaturedBooks();
     } catch (error) {
        console.error(error);
     }
+  },
+
+  goToPublicCatalog() {
+    document.getElementById('admin-layout').classList.add('admin-only'); // Ensure hidden if not admin
+    document.getElementById('public-layout').classList.remove('hidden', 'public-only');
+    document.body.classList.remove('bg-surface'); // Reset body if needed
+    // In case layout switching is handled by IDs:
+    document.getElementById('admin-layout').style.display = 'none';
+    document.getElementById('public-layout').style.display = 'flex';
   },
 
   async loadFeaturedBooks(booksToRender) {
@@ -469,6 +503,8 @@ const app = {
     const profilePill = document.getElementById('user-profile-pill');
     const adminManageBtn = document.getElementById('admin-manage-btn');
     const changePwBtn = document.getElementById('change-pw-btn');
+    const adminControlText = document.getElementById('admin-control-text');
+    const userInitials = document.getElementById('user-initials');
 
     if (currentUser) {
       if (loginBtn) loginBtn.classList.add('hidden');
@@ -478,40 +514,51 @@ const app = {
         const avatar = document.getElementById('user-avatar');
         const nameEl = document.getElementById('user-name');
         const badge = document.getElementById('user-role-badge');
-        if (avatar) avatar.src = currentUser.photoURL || '';
+        
         if (nameEl) nameEl.textContent = currentUser.displayName || currentUser.email;
-        if (badge) badge.textContent = role;
+        if (badge) {
+          badge.textContent = role;
+          badge.className = `text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${role === 'member' ? 'bg-secondary text-primary' : 'bg-primary text-white'}`;
+        }
+        if (avatar) avatar.src = currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || currentUser.email)}&background=random`;
       }
 
-      if (role === 'superadmin' || role === 'admin') {
-        document.body.classList.add('is-admin');
-      } else if (role === 'member') {
-        // Member: show admin layout but limited links
-        document.body.classList.add('is-admin');
-        // Hide admin-only nav items from member
-        document.querySelectorAll('.nav-links a').forEach(link => {
-          const target = link.getAttribute('data-target');
-          const memberAllowed = ['dashboard-view', 'member-history-view', 'cart-view'];
-          link.style.display = (!target || memberAllowed.includes(target) || target === 'cart-view') ? '' : 'none';
-        });
-        // Switch view to member history
-        this.switchView('member-history-view');
-        this.showToast(`Welcome back, ${currentUser.displayName || currentUser.email}!`);
-      } else {
-        document.body.classList.remove('is-admin');
+      // Update Header/Avatar text
+      if (adminControlText) adminControlText.textContent = role === 'member' ? 'Member Portal' : 'Admin Control';
+      if (userInitials) {
+         const name = currentUser.displayName || currentUser.email;
+         userInitials.textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
       }
+
+      // Layout Switching
+      document.getElementById('public-layout').style.display = 'none';
+      document.getElementById('admin-layout').style.display = 'flex';
+
+      // Sidebar Links Visibility
+      document.querySelectorAll('.nav-links a[data-target]').forEach(link => {
+        const target = link.getAttribute('data-target');
+        const memberAllowed = ['dashboard-view', 'member-history-view', 'cart-view'];
+        if (role === 'member') {
+          link.style.display = memberAllowed.includes(target) ? 'flex' : 'none';
+        } else {
+          link.style.display = 'flex';
+        }
+      });
 
       if (adminManageBtn) adminManageBtn.style.display = role === 'superadmin' ? 'flex' : 'none';
       if (changePwBtn) changePwBtn.style.display = role === 'member' ? 'flex' : 'none';
 
+      // Auto-load dashboard to show member stats
+      this.switchView('dashboard-view');
+      this.showToast(`Welcome back, ${currentUser.displayName || currentUser.email}!`);
+
     } else {
       if (loginBtn) loginBtn.classList.remove('hidden');
       if (profilePill) { profilePill.classList.add('hidden'); profilePill.classList.remove('flex'); }
-      document.body.classList.remove('is-admin');
+      document.getElementById('public-layout').style.display = 'flex';
+      document.getElementById('admin-layout').style.display = 'none';
       if (adminManageBtn) adminManageBtn.style.display = 'none';
       if (changePwBtn) changePwBtn.style.display = 'none';
-      // Restore all nav links visibility
-      document.querySelectorAll('.nav-links a').forEach(link => link.style.display = '');
     }
   },
 
@@ -622,25 +669,44 @@ const app = {
   checkLogin() {},
   updateAdminUI() { this.updateAuthUI(); },
 
-  // Cart: Load all cart requests (admin view)
+  // Cart: Load all cart requests (admin/member view)
   async loadCartView() {
     const container = document.getElementById('cart-list-container');
     if (!container) return;
-    container.innerHTML = '<p class="text-on-surface-variant italic">Loading...</p>';
+    const { currentUser, role } = this.state;
+    container.innerHTML = '<p class="text-on-surface-variant italic px-6">Loading...</p>';
+    
     try {
-      const items = await api.getAllCartItems();
+      let items = await api.getAllCartItems();
+      
+      if (role === 'member') {
+        const cardId = currentUser.email.split('@')[0];
+        const member = await api.getMemberByCard(cardId);
+        items = items.filter(item => item.memberId === member.id);
+        
+        // Update View Title
+        const title = document.querySelector('#cart-view h2');
+        if (title) title.textContent = 'My Requested Cart';
+      } else {
+        const title = document.querySelector('#cart-view h2');
+        if (title) title.textContent = 'Member Cart Requests';
+      }
+
       if (items.length === 0) {
-        container.innerHTML = '<p class="text-on-surface-variant italic">No cart requests yet.</p>';
+        container.innerHTML = '<p class="text-on-surface-variant italic px-6 mt-4">No cart requests found.</p>';
         const badge = document.getElementById('cart-count-badge');
-        if (badge) badge.classList.add('hidden');
+        if (badge && role !== 'member') badge.classList.add('hidden');
         return;
       }
-      // Update badge
-      const badge = document.getElementById('cart-count-badge');
-      if (badge) { badge.textContent = items.length; badge.classList.remove('hidden'); }
+      
+      // Update badge (admin view only)
+      if (role !== 'member') {
+        const badge = document.getElementById('cart-count-badge');
+        if (badge) { badge.textContent = items.length; badge.classList.remove('hidden'); }
+      }
 
       container.innerHTML = items.map(item => `
-        <div class="flex items-center justify-between bg-surface-container-lowest rounded-xl px-6 py-4 border border-outline-variant/10 shadow-sm">
+        <div class="flex items-center justify-between bg-surface-container-lowest rounded-xl px-6 py-4 border border-outline-variant/10 shadow-sm mx-6 mb-4">
           <div class="flex items-center gap-4">
             ${item.coverImage ? `<img src="${item.coverImage}" class="w-10 h-14 object-cover rounded-lg shadow-sm">` : `<div class="w-10 h-14 bg-surface-container rounded-lg flex items-center justify-center"><span class="material-symbols-outlined text-outline">book</span></div>`}
             <div>
@@ -650,14 +716,14 @@ const app = {
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button onclick="app.dismissCartItem('${item.id}')" class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/50 rounded-full transition-all" title="Dismiss / Remove">
-              <span class="material-symbols-outlined text-sm">remove_shopping_cart</span>
+            <button onclick="app.dismissCartItem('${item.id}')" class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/50 rounded-full transition-all" title="${role === 'member' ? 'Cancel Request' : 'Dismiss / Remove'}">
+              <span class="material-symbols-outlined text-sm">${role === 'member' ? 'cancel' : 'remove_shopping_cart'}</span>
             </button>
           </div>
         </div>
       `).join('');
     } catch (e) {
-      container.innerHTML = '<p class="text-error italic">Failed to load cart.</p>';
+      container.innerHTML = '<p class="text-on-surface-variant italic px-6 mt-4 text-error">Failed to load cart items.</p>';
     }
   },
 

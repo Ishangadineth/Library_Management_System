@@ -62,6 +62,36 @@ router.get('/by-card/:cardId/cart', checkDb, async (req, res) => {
   }
 });
 
+// Member Stats: GET summary
+router.get('/by-card/:cardId/stats', checkDb, async (req, res) => {
+  try {
+    const memberSnap = await db.collection('members').where('memberCardId', '==', req.params.cardId).limit(1).get();
+    if (memberSnap.empty) return res.status(404).json({ error: 'Member not found' });
+    const memberId = memberSnap.docs[0].id;
+    
+    const loanSnap = await db.collection('circulation').where('memberId', '==', memberId).get();
+    
+    let stats = {
+      totalLoans: 0,
+      currentlyBorrowed: 0,
+      overdue: 0,
+      totalFine: 0
+    };
+
+    loanSnap.forEach(doc => {
+      const loan = doc.data();
+      stats.totalLoans++;
+      if (loan.status === 'Active') stats.currentlyBorrowed++;
+      if (loan.status === 'Overdue') stats.overdue++;
+      if (loan.fine) stats.totalFine += Number(loan.fine);
+    });
+
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Cart: Add book to member cart
 router.post('/by-card/:cardId/cart', checkDb, async (req, res) => {
   try {
