@@ -11,9 +11,14 @@ const app = {
     this.initTheme();
     this.bindEvents();
     this.startClock();
-    await this.loadDashboard();
     
-    // Remove loading screen after data load
+    try {
+      await this.loadDashboard();
+    } catch (e) {
+      console.error("Initialization Sync Error:", e);
+    }
+    
+    // Remove loading screen after data load (1.2s delay for visual smoothness)
     setTimeout(() => {
       const loader = document.getElementById('loading-screen');
       if (loader) {
@@ -304,7 +309,7 @@ const app = {
         `;
       });
     } catch (e) { console.error(e); }
-  },},
+  },
 
   async loadBooksView() {
     try {
@@ -859,7 +864,8 @@ const app = {
   checkLogin() {},
   updateAdminUI() { this.updateAuthUI(); },
 
-  // Cart: Load all cart requests (admin/member view)  async loadCartView(filter = 'All') {
+  // Cart: Load all cart requests (admin/member view)
+  async loadCartView(filter = 'All') {
     const container = document.getElementById('cart-list-container');
     if (!container) return;
     const { currentUser, role } = this.state;
@@ -944,7 +950,7 @@ const app = {
         this.showToast('Member details not found', true);
       }
     } catch (e) { console.error(e); }
-  },},
+  },
 
   async dismissCartItem(cartItemId) {
     try {
