@@ -23,45 +23,69 @@
 }
 
 body.light-mode {
-  --bg-dark: #fbf8f1; /* Creamy Bauhaus background */
-  --bg-panel: #ffffff; 
-  --text-main: #141414;
-  --text-muted: #444444;
-  --border-color: #141414; /* Bold outlines */
-  --primary: #e63946; /* Bauhaus Red */
-  --accent-blue: #457b9d; /* Bauhaus Blue */
-  --accent-yellow: #f1faee; 
-  --panel-shadow: 6px 6px 0px #141414; /* Typical Bauhaus hard shadow */
+  --bg-dark: #f4f6f8; /* Soft light gray shopping backdrop */
+  --bg-panel: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+  --text-main: #111111;
+  --text-muted: #666666;
+  --border-color: rgba(0, 0, 0, 0.06); /* Soft dividers */
+  --primary: #ff4a4a; /* Vibrant AliExpress Red */
+  --primary-glow: rgba(255, 74, 74, 0.25);
+  --accent-blue: #2a73e8; 
+  --accent-yellow: #fff8e1; 
+  --panel-shadow: 0 8px 30px rgba(0, 0, 0, 0.04); /* Soft, luxurious e-commerce shadow */
 }
 
 body.light-mode .glass-panel {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border-width: 2px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-width: 1px;
   box-shadow: var(--panel-shadow);
-  border-radius: 4px; /* Sharp modernist corners */
+  border-radius: 16px;
 }
 
 body.light-mode .public-banner {
-  background: var(--accent-yellow) !important;
-  border: 2px solid var(--border-color) !important;
-  border-radius: 4px;
+  background: linear-gradient(135deg, #ff4a4a 0%, #ff7b54 100%) !important;
+  border: none !important;
+  border-radius: 20px;
+  box-shadow: 0 12px 35px rgba(255, 74, 74, 0.3) !important;
+}
+
+body.light-mode .public-banner h1,
+body.light-mode .public-banner p {
+  color: #ffffff !important;
+}
+
+body.light-mode .public-banner i {
+  color: #ffffff !important;
+  opacity: 0.15 !important;
 }
 
 body.light-mode .btn {
-  border-radius: 4px !important;
-  border: 2px solid var(--border-color);
-  box-shadow: 3px 3px 0px var(--border-color);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  border-radius: 10px !important;
+  border: none;
+  box-shadow: none;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+body.light-mode .btn-primary {
+  background: linear-gradient(90deg, #ff4a4a, #ff7b54);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(255, 74, 74, 0.25);
+}
+
+body.light-mode .btn-primary:hover {
+  box-shadow: 0 8px 25px rgba(255, 74, 74, 0.4);
+  transform: translateY(-2px);
 }
 
 body.light-mode .filter-btn.active {
   background: var(--primary) !important;
   color: #fff !important;
-  box-shadow: none;
-  transform: translate(2px, 2px);
+  box-shadow: 0 6px 15px rgba(255, 74, 74, 0.25) !important;
+  transform: translateY(-2px);
+  border-color: transparent !important;
 }
 
 /* Footer Section */
