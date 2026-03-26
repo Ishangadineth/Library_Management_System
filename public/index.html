@@ -100,7 +100,16 @@
       
       <!-- Dashboard View -->
       <div id="dashboard-view" class="view active">
-        <h2 class="view-title">Library Dashboard</h2>
+        <!-- Public Catalog Header -->
+        <div class="public-banner glass-panel" style="margin-bottom: 30px; padding: 40px; background: linear-gradient(135deg, rgba(108, 92, 231, 0.2), rgba(16, 185, 129, 0.1)); position: relative; overflow: hidden; display: block;">
+          <div style="position: relative; z-index: 1;">
+            <h1 style="font-size: 2.8rem; letter-spacing: -1.5px;">Premium Library 2024</h1>
+            <p class="text-muted" style="font-size: 1.1rem; max-width: 500px;">Explore our vast collection of knowledge, curated specifically for you. Search and discover your next read.</p>
+          </div>
+          <i class='bx bx-shopping-bag' style="position: absolute; right: -20px; bottom: -20px; font-size: 200px; opacity: 0.1; transform: rotate(-15deg);"></i>
+        </div>
+
+        <h2 class="view-title admin-only">Admin Stats Overview</h2>
         
         <div class="stats-grid admin-only">
           <div class="stat-card glass-panel">
@@ -411,7 +420,7 @@
 
           <div class="divider"></div>
 
-          <div class="notes-section mt-4">
+          <div class="notes-section mt-4 admin-only">
             <h3>Librarian Notes</h3>
             <textarea id="detail-notes" class="form-control glass-panel mt-2" style="width: 100%; height: 80px; padding: 10px; color: #fff; border: 1px solid var(--border-color);" placeholder="Add special notes about this book..."></textarea>
             <button class="btn btn-primary mt-2" onclick="app.saveBookNotes()">Save Notes</button>

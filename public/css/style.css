@@ -252,12 +252,31 @@ tr td:last-child { border-radius: 0 12px 12px 0; }
 .text-warning { color: var(--warning); }
 
 /* Admin Visibility Control */
+.sidebar { display: none !important; }
+body.is-admin .sidebar { display: flex !important; }
+
+/* Main Content Adjustments */
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin-left: 0 !important;
+}
+
+/* Side navigation active state override */
+body.is-admin .main-content {
+  padding-left: 0;
+}
+
 .admin-only { display: none !important; }
 body.is-admin .admin-only { display: block !important; }
 body.is-admin .admin-only.flex { display: flex !important; }
 body.is-admin .admin-only.grid { display: grid !important; }
 body.is-admin li.admin-only { display: list-item !important; }
 body.is-admin .admin-only.btn { display: inline-flex !important; }
+body.is-admin .public-banner { display: none !important; }
 
 /* Modal System */
 .modal {
