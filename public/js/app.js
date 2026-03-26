@@ -157,17 +157,25 @@ const app = {
         const cardId = currentUser.email.split('@')[0];
         const stats = await api.getMemberStats(cardId);
         
-        // Update Labels for Member
-        document.getElementById('stat-label-1').textContent = 'Total Borrowed'; // Total loans ever
-        document.getElementById('stat-label-2').textContent = 'Currently Out';
-        document.getElementById('stat-label-3').textContent = 'Overdue';
-        document.getElementById('stat-label-4').textContent = 'Pending Fines (Rs.)';
+        // Update Labels for Member with safety checks
+        const l1 = document.getElementById('stat-label-1');
+        const l2 = document.getElementById('stat-label-2');
+        const l3 = document.getElementById('stat-label-3');
+        const l4 = document.getElementById('stat-label-4');
+        if (l1) l1.textContent = 'Total Borrowed';
+        if (l2) l2.textContent = 'Currently Out';
+        if (l3) l3.textContent = 'Overdue';
+        if (l4) l4.textContent = 'Pending Fines (Rs.)';
 
-        // Update Counts
-        document.getElementById('stat-total-books').textContent = stats.totalLoans || 0;
-        document.getElementById('stat-borrowed').textContent = stats.currentlyBorrowed || 0;
-        document.getElementById('stat-overdue').textContent = stats.overdue || 0;
-        document.getElementById('stat-members').textContent = stats.totalFine || 0;
+        // Update Counts with safety checks
+        const v1 = document.getElementById('stat-total-books');
+        const v2 = document.getElementById('stat-borrowed');
+        const v3 = document.getElementById('stat-overdue');
+        const v4 = document.getElementById('stat-members');
+        if (v1) v1.textContent = stats.totalLoans || 0;
+        if (v2) v2.textContent = stats.currentlyBorrowed || 0;
+        if (v3) v3.textContent = stats.overdue || 0;
+        if (v4) v4.textContent = stats.totalFine || 0;
         
         // Change Subtitle
         const subtitle = document.querySelector('#dashboard-view p');
@@ -175,16 +183,24 @@ const app = {
       } else {
         const stats = await api.getDashboardStats();
         
-        // Restore Admin Labels
-        document.getElementById('stat-label-1').textContent = 'Total Books';
-        document.getElementById('stat-label-2').textContent = 'Borrowed';
-        document.getElementById('stat-label-3').textContent = 'Overdue';
-        document.getElementById('stat-label-4').textContent = 'Members';
+        // Restore Admin Labels with safety checks
+        const l1 = document.getElementById('stat-label-1');
+        const l2 = document.getElementById('stat-label-2');
+        const l3 = document.getElementById('stat-label-3');
+        const l4 = document.getElementById('stat-label-4');
+        if (l1) l1.textContent = 'Total Books';
+        if (l2) l2.textContent = 'Borrowed';
+        if (l3) l3.textContent = 'Overdue';
+        if (l4) l4.textContent = 'Members';
 
-        document.getElementById('stat-total-books').textContent = stats.totalBooks || 0;
-        document.getElementById('stat-borrowed').textContent = stats.activeLoans || 0;
-        document.getElementById('stat-overdue').textContent = stats.overdue || 0;
-        document.getElementById('stat-members').textContent = stats.totalMembers || 0;
+        const v1 = document.getElementById('stat-total-books');
+        const v2 = document.getElementById('stat-borrowed');
+        const v3 = document.getElementById('stat-overdue');
+        const v4 = document.getElementById('stat-members');
+        if (v1) v1.textContent = stats.totalBooks || 0;
+        if (v2) v2.textContent = stats.activeLoans || 0;
+        if (v3) v3.textContent = stats.overdue || 0;
+        if (v4) v4.textContent = stats.totalMembers || 0;
 
         const subtitle = document.querySelector('#dashboard-view p');
         if (subtitle) subtitle.textContent = 'System Administration Status';
@@ -192,7 +208,8 @@ const app = {
 
       this.loadFeaturedBooks();
     } catch (error) {
-       console.error(error);
+       console.error("Dashboard Load Error:", error);
+       this.showToast("Failed to sync dashboard data.");
     }
   },
 
@@ -498,67 +515,77 @@ const app = {
 
   // Called by firebase-client.js after auth state changes
   updateAuthUI() {
-    const { currentUser, role } = this.state;
-    const loginBtn = document.getElementById('login-btn');
-    const profilePill = document.getElementById('user-profile-pill');
-    const adminManageBtn = document.getElementById('admin-manage-btn');
-    const changePwBtn = document.getElementById('change-pw-btn');
-    const adminControlText = document.getElementById('admin-control-text');
-    const userInitials = document.getElementById('user-initials');
+    try {
+      const { currentUser, role } = this.state;
+      const loginBtn = document.getElementById('login-btn');
+      const profilePill = document.getElementById('user-profile-pill');
+      const adminManageBtn = document.getElementById('admin-manage-btn');
+      const changePwBtn = document.getElementById('change-pw-btn');
+      const adminControlText = document.getElementById('admin-control-text');
+      const userInitials = document.getElementById('user-initials');
 
-    if (currentUser) {
-      if (loginBtn) loginBtn.classList.add('hidden');
-      if (profilePill) {
-        profilePill.classList.remove('hidden');
-        profilePill.classList.add('flex');
-        const avatar = document.getElementById('user-avatar');
-        const nameEl = document.getElementById('user-name');
-        const badge = document.getElementById('user-role-badge');
+      if (currentUser) {
+        if (loginBtn) loginBtn.classList.add('hidden');
+        if (profilePill) {
+          profilePill.classList.remove('hidden');
+          profilePill.classList.add('flex');
+          const avatar = document.getElementById('user-avatar');
+          const nameEl = document.getElementById('user-name');
+          const badge = document.getElementById('user-role-badge');
+          
+          if (nameEl) nameEl.textContent = currentUser.displayName || currentUser.email;
+          if (badge) {
+            badge.textContent = role;
+            badge.className = `text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${role === 'member' ? 'bg-secondary text-primary' : 'bg-primary text-white'}`;
+          }
+          if (avatar) avatar.src = currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || currentUser.email)}&background=random`;
+        }
+
+        // Update Header/Avatar text
+        if (adminControlText) adminControlText.textContent = role === 'member' ? 'Member Portal' : 'Admin Control';
+        if (userInitials) {
+           const name = currentUser.displayName || currentUser.email;
+           userInitials.textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        }
+
+        // Layout Switching
+        const publicLayout = document.getElementById('public-layout');
+        const adminLayout = document.getElementById('admin-layout');
+        if (publicLayout) publicLayout.style.display = 'none';
+        if (adminLayout) adminLayout.style.display = 'flex';
+
+        // Sidebar Links Visibility
+        document.querySelectorAll('.nav-links a[data-target]').forEach(link => {
+          const target = link.getAttribute('data-target');
+          const memberAllowed = ['dashboard-view', 'member-history-view', 'cart-view'];
+          if (role === 'member') {
+            link.style.display = memberAllowed.includes(target) ? 'flex' : 'none';
+          } else {
+            link.style.display = 'flex';
+          }
+        });
+
+        if (adminManageBtn) adminManageBtn.style.display = role === 'superadmin' ? 'flex' : 'none';
+        if (changePwBtn) changePwBtn.style.display = role === 'member' ? 'flex' : 'none';
+
+        // Auto-load dashboard to show member stats
+        this.switchView('dashboard-view');
+        // this.showToast(`Welcome back, ${currentUser.displayName || currentUser.email}!`);
+
+      } else {
+        if (loginBtn) loginBtn.classList.remove('hidden');
+        if (profilePill) { profilePill.classList.add('hidden'); profilePill.classList.remove('flex'); }
         
-        if (nameEl) nameEl.textContent = currentUser.displayName || currentUser.email;
-        if (badge) {
-          badge.textContent = role;
-          badge.className = `text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${role === 'member' ? 'bg-secondary text-primary' : 'bg-primary text-white'}`;
-        }
-        if (avatar) avatar.src = currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || currentUser.email)}&background=random`;
+        const publicLayout = document.getElementById('public-layout');
+        const adminLayout = document.getElementById('admin-layout');
+        if (publicLayout) publicLayout.style.display = 'flex';
+        if (adminLayout) adminLayout.style.display = 'none';
+        
+        if (adminManageBtn) adminManageBtn.style.display = 'none';
+        if (changePwBtn) changePwBtn.style.display = 'none';
       }
-
-      // Update Header/Avatar text
-      if (adminControlText) adminControlText.textContent = role === 'member' ? 'Member Portal' : 'Admin Control';
-      if (userInitials) {
-         const name = currentUser.displayName || currentUser.email;
-         userInitials.textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-      }
-
-      // Layout Switching
-      document.getElementById('public-layout').style.display = 'none';
-      document.getElementById('admin-layout').style.display = 'flex';
-
-      // Sidebar Links Visibility
-      document.querySelectorAll('.nav-links a[data-target]').forEach(link => {
-        const target = link.getAttribute('data-target');
-        const memberAllowed = ['dashboard-view', 'member-history-view', 'cart-view'];
-        if (role === 'member') {
-          link.style.display = memberAllowed.includes(target) ? 'flex' : 'none';
-        } else {
-          link.style.display = 'flex';
-        }
-      });
-
-      if (adminManageBtn) adminManageBtn.style.display = role === 'superadmin' ? 'flex' : 'none';
-      if (changePwBtn) changePwBtn.style.display = role === 'member' ? 'flex' : 'none';
-
-      // Auto-load dashboard to show member stats
-      this.switchView('dashboard-view');
-      this.showToast(`Welcome back, ${currentUser.displayName || currentUser.email}!`);
-
-    } else {
-      if (loginBtn) loginBtn.classList.remove('hidden');
-      if (profilePill) { profilePill.classList.add('hidden'); profilePill.classList.remove('flex'); }
-      document.getElementById('public-layout').style.display = 'flex';
-      document.getElementById('admin-layout').style.display = 'none';
-      if (adminManageBtn) adminManageBtn.style.display = 'none';
-      if (changePwBtn) changePwBtn.style.display = 'none';
+    } catch (e) {
+      console.error("Auth UI Update Error:", e);
     }
   },
 
