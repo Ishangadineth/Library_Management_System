@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Academic Curator - Library Management Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "on-primary-fixed-variant": "#1f477b",
+                "secondary": "#48626e",
+                "on-tertiary": "#ffffff",
+                "on-secondary-fixed": "#021f29",
+                "surface-tint": "#3a5f94",
+                "surface-variant": "#e2e2e7",
+                "secondary-fixed": "#cbe7f5",
+                "tertiary-fixed-dim": "#ffb690",
+                "on-primary-container": "#799dd6",
+                "tertiary": "#381300",
+                "secondary-container": "#cbe7f5",
+                "primary-fixed-dim": "#a7c8ff",
+                "on-secondary-container": "#4e6874",
+                "on-secondary": "#ffffff",
+                "background": "#f9f9fe",
+                "surface-container": "#eeedf2",
+                "surface-bright": "#f9f9fe",
+                "on-surface-variant": "#43474f",
+                "tertiary-fixed": "#ffdbca",
+                "on-background": "#1a1c1f",
+                "on-tertiary-fixed-variant": "#723610",
+                "on-tertiary-fixed": "#341100",
+                "surface-container-lowest": "#ffffff",
+                "outline": "#737780",
+                "tertiary-container": "#592300",
+                "inverse-surface": "#2f3034",
+                "on-secondary-fixed-variant": "#304a55",
+                "primary-container": "#003366",
+                "surface-dim": "#dad9de",
+                "secondary-fixed-dim": "#afcbd8",
+                "inverse-primary": "#a7c8ff",
+                "on-primary": "#ffffff",
+                "surface-container-high": "#e8e8ed",
+                "primary-fixed": "#d5e3ff",
+                "inverse-on-surface": "#f1f0f5",
+                "on-error": "#ffffff",
+                "surface-container-low": "#f4f3f8",
+                "on-error-container": "#93000a",
+                "outline-variant": "#c3c6d1",
+                "error": "#ba1a1a",
+                "on-tertiary-container": "#d8885c",
+                "on-surface": "#1a1c1f",
+                "surface-container-highest": "#e2e2e7",
+                "primary": "#001e40",
+                "on-primary-fixed": "#001b3c",
+                "error-container": "#ffdad6",
+                "surface": "#f9f9fe"
+              },
+              fontFamily: {
+                "headline": ["Manrope"],
+                "body": ["Inter"],
+                "label": ["Inter"]
+              },
+              borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r-0 bg-[#f4f3f8] dark:bg-slate-900 flex flex-col py-8 z-50">
+<div class="px-6 mb-10">
+<h1 class="text-2xl font-bold text-[#001e40] dark:text-blue-200 font-headline">The Academic Curator</h1>
+<p class="text-xs text-on-surface-variant mt-1 font-label">Main Administration</p>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Active: Dashboard -->
+<a class="flex items-center px-6 py-3 bg-white dark:bg-slate-800 text-[#001e40] dark:text-blue-200 rounded-l-none rounded-r-full shadow-sm font-['Manrope'] font-semibold tracking-wide text-sm transition-transform scale-95 active:scale-90" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-all duration-200 font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">library_books</span>
+                Book Inventory
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-all duration-200 font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">group</span>
+                Member Management
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-all duration-200 font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">swap_horiz</span>
+                Issue/Return
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-all duration-200 font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-headline font-bold text-sm shadow-sm transition-transform active:scale-95">
+                Add New Entry
+            </button>
+</div>
+</aside>
+<!-- TopNavBar Component -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-[#f9f9fe]/80 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-8 z-40 border-b border-slate-200/15 dark:border-slate-800/15">
+<div class="flex items-center flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-highest rounded-xl border-none focus:ring-1 focus:ring-surface-tint text-sm font-body" placeholder="Search archives, members, or ISBN..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<div class="flex items-center space-x-4">
+<button class="text-slate-500 hover:text-[#003366] transition-all"><span class="material-symbols-outlined">notifications</span></button>
+<button class="text-slate-500 hover:text-[#003366] transition-all"><span class="material-symbols-outlined">help_outline</span></button>
+</div>
+<div class="h-6 w-px bg-outline-variant/30"></div>
+<div class="flex items-center space-x-3">
+<span class="text-sm font-headline font-bold text-primary">Quick Actions</span>
+<img alt="Librarian Profile" class="w-10 h-10 rounded-full border-2 border-white shadow-sm" data-alt="portrait of a professional male librarian in a library environment with warm soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7haRlJl3BH_fXrUsAq0CSxI32E4PTbz0R38yLnOiJ-xh9-DQNfAekZc8O7R-fWgixHVqZHBA2ckBZFNlBfpecXxs3ok3eOoa61SqgkapPU5TOvDexwYOh6sBzUbp74atJAsoRnQiJa2O_aa9sVwvmLj8FUHU3-BqTvK5ufGvfMW26Kdvb0p4Xij6ew_PWp_5PcfEAwCjm23TcKuxUJmZtGjM-0WL2NkUWhtBJNnhrRT50yHVWwIQY7AN9p4_TUmq5LwnrpLGpZOUk"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 pb-12 px-10 min-h-screen">
+<!-- Dashboard Header -->
+<div class="mb-10 flex justify-between items-end">
+<div>
+<h2 class="text-3xl font-headline font-extrabold text-primary tracking-tight">Curator's Overview</h2>
+<p class="text-on-surface-variant font-label mt-1">Status as of October 24, 2023</p>
+</div>
+<div class="flex space-x-3">
+<button class="px-4 py-2 bg-surface-container-high text-on-primary-fixed-variant rounded-xl text-sm font-bold flex items-center transition-all hover:bg-surface-variant">
+<span class="material-symbols-outlined text-sm mr-2">download</span> Export Report
+                </button>
+</div>
+</div>
+<!-- Bento Grid Metrics -->
+<div class="grid grid-cols-4 gap-6 mb-12">
+<!-- Metric 1: Total Books -->
+<div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/5">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-primary-fixed rounded-xl text-primary">
+<span class="material-symbols-outlined">menu_book</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant px-2 py-1 bg-surface-container rounded-full">+2.4%</span>
+</div>
+<h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase tracking-wider mb-1">Total Books</h3>
+<div class="text-3xl font-headline font-extrabold text-primary">24,592</div>
+</div>
+<!-- Metric 2: Borrowed -->
+<div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/5">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-secondary-fixed rounded-xl text-secondary">
+<span class="material-symbols-outlined">auto_stories</span>
+</div>
+<span class="text-xs font-bold text-on-surface-variant px-2 py-1 bg-surface-container rounded-full">Active</span>
+</div>
+<h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase tracking-wider mb-1">Borrowed</h3>
+<div class="text-3xl font-headline font-extrabold text-primary">1,842</div>
+</div>
+<!-- Metric 3: Overdue -->
+<div class="col-span-1 bg-error-container/30 p-6 rounded-xl shadow-sm border border-error/5">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-error-container rounded-xl text-error">
+<span class="material-symbols-outlined">alarm</span>
+</div>
+<span class="text-xs font-bold text-on-error-container px-2 py-1 bg-error-container/50 rounded-full">Urgent</span>
+</div>
+<h3 class="text-on-error-container text-xs font-headline font-bold uppercase tracking-wider mb-1">Overdue Books</h3>
+<div class="text-3xl font-headline font-extrabold text-on-error-container">124</div>
+</div>
+<!-- Metric 4: Members -->
+<div class="col-span-1 bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/5">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 bg-tertiary-fixed rounded-xl text-tertiary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<span class="text-xs font-bold text-on-tertiary-fixed-variant px-2 py-1 bg-tertiary-fixed/50 rounded-full">Verified</span>
+</div>
+<h3 class="text-on-surface-variant text-xs font-headline font-bold uppercase tracking-wider mb-1">Active Members</h3>
+<div class="text-3xl font-headline font-extrabold text-primary">8,103</div>
+</div>
+</div>
+<!-- Main Visual Section: Chart & Activity -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Borrowing Trends Chart Area -->
+<div class="col-span-8 bg-surface-container-lowest rounded-xl p-8 shadow-sm border border-outline-variant/5">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="text-lg font-headline font-bold text-primary">Borrowing Trends</h3>
+<p class="text-sm text-on-surface-variant">Monthly analysis of collection movement</p>
+</div>
+<select class="bg-surface-container-high border-none text-xs font-bold rounded-lg px-3 py-1 text-primary ring-0">
+<option>Last 6 Months</option>
+<option>Last Year</option>
+</select>
+</div>
+<!-- Mock Chart Visualization -->
+<div class="h-64 flex items-end justify-between space-x-4 pt-4">
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 group-hover:bg-primary-container h-[40%]"></div>
+<span class="text-[10px] mt-2 font-bold text-on-surface-variant">MAY</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 group-hover:bg-primary-container h-[65%]"></div>
+<span class="text-[10px] mt-2 font-bold text-on-surface-variant">JUN</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 group-hover:bg-primary-container h-[55%]"></div>
+<span class="text-[10px] mt-2 font-bold text-on-surface-variant">JUL</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-primary rounded-t-lg h-[90%] shadow-lg shadow-primary/20"></div>
+<span class="text-[10px] mt-2 font-bold text-primary">AUG</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 group-hover:bg-primary-container h-[75%]"></div>
+<span class="text-[10px] mt-2 font-bold text-on-surface-variant">SEP</span>
+</div>
+<div class="flex flex-col items-center flex-1 group">
+<div class="w-full bg-surface-container-high rounded-t-lg transition-all duration-300 group-hover:bg-primary-container h-[82%]"></div>
+<span class="text-[10px] mt-2 font-bold text-on-surface-variant">OCT</span>
+</div>
+</div>
+</div>
+<!-- Recent Activity Panel (Editorial Style) -->
+<div class="col-span-4 space-y-6">
+<div class="bg-surface-container-low rounded-xl p-6 h-full border border-outline-variant/5">
+<h3 class="text-lg font-headline font-bold text-primary mb-6">Recent Activities</h3>
+<div class="space-y-6">
+<!-- Activity Item 1 -->
+<div class="flex space-x-4 relative">
+<div class="absolute left-4 top-10 bottom-0 w-px bg-outline-variant/30"></div>
+<div class="z-10 w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-on-secondary-container">assignment_return</span>
+</div>
+<div class="flex-1 pb-4">
+<p class="text-sm font-semibold text-primary">The Great Gatsby Returned</p>
+<p class="text-xs text-on-surface-variant">Member: #MBR-29401</p>
+<p class="text-[10px] font-bold text-surface-tint mt-1 uppercase">2 Minutes Ago</p>
+</div>
+</div>
+<!-- Activity Item 2 -->
+<div class="flex space-x-4 relative">
+<div class="absolute left-4 top-10 bottom-0 w-px bg-outline-variant/30"></div>
+<div class="z-10 w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-primary">person_add</span>
+</div>
+<div class="flex-1 pb-4">
+<p class="text-sm font-semibold text-primary">New Member Registration</p>
+<p class="text-xs text-on-surface-variant">Sarah Jenkins (Silver Tier)</p>
+<p class="text-[10px] font-bold text-surface-tint mt-1 uppercase">1 Hour Ago</p>
+</div>
+</div>
+<!-- Activity Item 3 -->
+<div class="flex space-x-4">
+<div class="z-10 w-8 h-8 rounded-full bg-error-container/50 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-error">warning</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-semibold text-primary">Overdue Alert Triggered</p>
+<p class="text-xs text-on-surface-variant">"Sapiens" overdue by 3 days</p>
+<p class="text-[10px] font-bold text-surface-tint mt-1 uppercase">4 Hours Ago</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-8 py-2 text-primary font-bold text-sm border-t border-outline-variant/20 hover:text-surface-tint transition-colors">
+                        View Audit Log
+                    </button>
+</div>
+</div>
+</div>
+<!-- Featured Collections (Card Row) -->
+<div class="mt-12">
+<h3 class="text-xl font-headline font-bold text-primary mb-6">Active Loans Monitor</h3>
+<div class="grid grid-cols-3 gap-6">
+<!-- Book Card 1 -->
+<div class="glass-card p-4 rounded-xl shadow-sm border border-outline-variant/10 flex space-x-4 group cursor-pointer hover:bg-white transition-all">
+<img alt="Book Cover" class="w-24 h-32 object-cover rounded-lg shadow-md group-hover:scale-105 transition-transform" data-alt="vertical hardcover book with minimalist typography on a light gray background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADoWLzIZXMlyQqoahki9t2Jr7SawH2noLJjchyZ21xi3pUspCsIGOfbRPJzwoWCQ8wnudt-h2QIGUGCusf2pLiSaiZM-dVXNS9nK1tSv11q4YQPztIQndycIDlHP-drl6nZszRWQ3AptZGInSLeqn_gWqSU3pxUfc6iY0pYyV741hyeSuL3kgV2yq9cLuxjDbYvcUNNfi5-QCYKocGUL_WA9nu5plU4CzkodjjS3JIpJvrZ3SRgz_FX967hn-vkuUx2uFqGYlaHQPc"/>
+<div class="flex flex-col justify-between py-1">
+<div>
+<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full uppercase tracking-widest">Available</span>
+<h4 class="font-headline font-bold text-primary mt-2 leading-tight">Architecture of Life</h4>
+<p class="text-xs text-on-surface-variant">ISBN: 978-3-16-148410</p>
+</div>
+<div class="text-xs font-bold text-surface-tint underline decoration-2 underline-offset-4">Details</div>
+</div>
+</div>
+<!-- Book Card 2 -->
+<div class="glass-card p-4 rounded-xl shadow-sm border border-outline-variant/10 flex space-x-4 group cursor-pointer hover:bg-white transition-all">
+<img alt="Book Cover" class="w-24 h-32 object-cover rounded-lg shadow-md group-hover:scale-105 transition-transform" data-alt="stack of vintage books with worn leather covers in a warm dimly lit study" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBe5go-MWQew238UhwPPhY_w_KZnltw_L_duNIoOGie7EJiBXIYahMCkR7lhLjz6xVG4KF-sn7GtgMp-6AmIjEYho0eolVuIhZNn1A4VZPIojtutjDctkQlJgSajprWCG2smW7EWIVLFKv7AjoNW1NhyCWYL6Y3nv66jIZlhQ8yC5CvGV_dmldxat6mx92gBkPENUocU5hkBd2Me7CyqEZa4PiEn2oNhZphJzzhiyaAc10Wy57HStILmfHln6QedO9NgT7QU4d-_QE5"/>
+<div class="flex flex-col justify-between py-1">
+<div>
+<span class="px-2 py-0.5 bg-error-container text-on-error-container text-[10px] font-bold rounded-full uppercase tracking-widest">Overdue</span>
+<h4 class="font-headline font-bold text-primary mt-2 leading-tight">Historical Narratives</h4>
+<p class="text-xs text-on-surface-variant">ISBN: 978-1-24-342411</p>
+</div>
+<div class="text-xs font-bold text-surface-tint underline decoration-2 underline-offset-4">Action Required</div>
+</div>
+</div>
+<!-- Book Card 3 -->
+<div class="glass-card p-4 rounded-xl shadow-sm border border-outline-variant/10 flex space-x-4 group cursor-pointer hover:bg-white transition-all">
+<div class="w-24 h-32 bg-surface-container-high rounded-lg flex items-center justify-center border border-dashed border-outline-variant">
+<span class="material-symbols-outlined text-outline">add_circle</span>
+</div>
+<div class="flex flex-col justify-center">
+<h4 class="font-headline font-bold text-primary leading-tight">Scan New Entry</h4>
+<p class="text-xs text-on-surface-variant mt-1">Add to inventory quickly using barcode.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

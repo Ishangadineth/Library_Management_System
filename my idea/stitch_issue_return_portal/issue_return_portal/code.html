@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Issue &amp; Return | The Academic Curator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-fixed-variant": "#1f477b",
+              "secondary": "#48626e",
+              "on-tertiary": "#ffffff",
+              "on-secondary-fixed": "#021f29",
+              "surface-tint": "#3a5f94",
+              "surface-variant": "#e2e2e7",
+              "secondary-fixed": "#cbe7f5",
+              "tertiary-fixed-dim": "#ffb690",
+              "on-primary-container": "#799dd6",
+              "tertiary": "#381300",
+              "secondary-container": "#cbe7f5",
+              "primary-fixed-dim": "#a7c8ff",
+              "on-secondary-container": "#4e6874",
+              "on-secondary": "#ffffff",
+              "background": "#f9f9fe",
+              "surface-container": "#eeedf2",
+              "surface-bright": "#f9f9fe",
+              "on-surface-variant": "#43474f",
+              "tertiary-fixed": "#ffdbca",
+              "on-background": "#1a1c1f",
+              "on-tertiary-fixed-variant": "#723610",
+              "on-tertiary-fixed": "#341100",
+              "surface-container-lowest": "#ffffff",
+              "outline": "#737780",
+              "tertiary-container": "#592300",
+              "inverse-surface": "#2f3034",
+              "on-secondary-fixed-variant": "#304a55",
+              "primary-container": "#003366",
+              "surface-dim": "#dad9de",
+              "secondary-fixed-dim": "#afcbd8",
+              "inverse-primary": "#a7c8ff",
+              "on-primary": "#ffffff",
+              "surface-container-high": "#e8e8ed",
+              "primary-fixed": "#d5e3ff",
+              "inverse-on-surface": "#f1f0f5",
+              "on-error": "#ffffff",
+              "surface-container-low": "#f4f3f8",
+              "on-error-container": "#93000a",
+              "outline-variant": "#c3c6d1",
+              "error": "#ba1a1a",
+              "on-tertiary-container": "#d8885c",
+              "on-surface": "#1a1c1f",
+              "surface-container-highest": "#e2e2e7",
+              "primary": "#001e40",
+              "on-primary-fixed": "#001b3c",
+              "error-container": "#ffdad6",
+              "surface": "#f9f9fe"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r-0 bg-[#f4f3f8] dark:bg-slate-900 shadow-none flex flex-col py-8 z-50">
+<div class="px-6 mb-10">
+<h1 class="text-2xl font-bold text-[#001e40] dark:text-blue-200 tracking-tight">The Academic Curator</h1>
+<p class="text-xs text-slate-500 font-medium mt-1">Main Administration</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">library_books</span>
+                Book Inventory
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">group</span>
+                Member Management
+            </a>
+<!-- Active Tab: Issue/Return -->
+<a class="flex items-center px-6 py-3 bg-white dark:bg-slate-800 text-[#001e40] dark:text-blue-200 rounded-l-none rounded-r-full shadow-sm font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">swap_horiz</span>
+                Issue/Return
+            </a>
+<a class="flex items-center px-6 py-3 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-['Manrope'] font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="px-6 pt-6 mt-auto">
+<button class="w-full bg-primary-container text-white py-3 px-4 rounded-xl font-headline font-bold flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                Add New Entry
+            </button>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-64 min-h-screen relative">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-[#f9f9fe]/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/15 dark:border-slate-800/15 flex items-center justify-between px-8 z-40 transition-all duration-300 ease-in-out font-['Inter'] text-sm">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-highest border-none rounded-xl focus:ring-1 focus:ring-surface-tint text-on-surface" placeholder="Search curated collections..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 border-r border-outline-variant/30 pr-6">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-bold text-primary">Quick Actions</span>
+<img alt="Librarian Profile" class="w-8 h-8 rounded-full border border-primary-container/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXeasRJKFCyKSWgzorcp2pxx6awTA2BNB-yoG5YxPwhw2Pti7oc-DQCVS-SxEuuwGFWuo-MENS1_W6Zi5mRAcA6sm-klpG3kuPeEp_agjNa0ES2xJfnbMw6I3UO-ul6FVmGuD28VS0Vw95ibYBIuSs__o8lAC0zSDlpzwMgvzMLa7hbxs72zGjRWOAQUKS6AGh-b9XWotp4qXptIHfgxgS8QlB1V8aUvKcbhvwtWQe4YQAm2EwXEmZ9Jy7LmVdu33m3ONE-37uCz9a"/>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="pt-24 px-12 pb-12">
+<!-- Header Section -->
+<div class="mb-10 flex justify-between items-end">
+<div>
+<h2 class="text-4xl font-extrabold text-primary tracking-tight mb-2">Issue &amp; Return</h2>
+<p class="text-on-surface-variant font-medium">Manage circulation and track archival movement within the collection.</p>
+</div>
+<div class="flex bg-surface-container-low p-1 rounded-full">
+<button class="px-6 py-2 bg-surface-container-lowest text-primary font-bold rounded-full shadow-sm text-sm">Issue Book</button>
+<button class="px-6 py-2 text-on-surface-variant font-medium rounded-full hover:bg-surface-container-high transition-colors text-sm">Return Book</button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Issue Book Section (Left Column) -->
+<section class="col-span-12 lg:col-span-7 space-y-8">
+<div class="bg-surface-container-low rounded-xl p-8">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">book_2</span>
+<h3 class="text-xl font-bold text-primary">Circulation Entry</h3>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Member ID</label>
+<input class="w-full bg-surface-container-highest border-none rounded-xl p-4 focus:ring-1 focus:ring-surface-tint" placeholder="e.g. LIB-2024-889" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold uppercase tracking-widest text-on-surface-variant ml-1">Book ISBN</label>
+<input class="w-full bg-surface-container-highest border-none rounded-xl p-4 focus:ring-1 focus:ring-surface-tint" placeholder="e.g. 978-3-16-148410-0" type="text"/>
+</div>
+</div>
+<div class="mt-8 flex justify-end">
+<button class="bg-gradient-to-r from-primary to-primary-container text-white px-8 py-3 rounded-xl font-headline font-bold text-sm tracking-wide shadow-lg hover:shadow-primary/20 transition-all">
+                                Validate &amp; Issue
+                            </button>
+</div>
+</div>
+<!-- Recent Activity / Quick Preview -->
+<div class="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/15">
+<h3 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-6">Last 3 Issued Records</h3>
+<div class="space-y-4">
+<!-- Row 1 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-12 h-16 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="close-up of a vintage book cover with gold embossed lettering on a dark blue spine" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD229kt9itTTvoNB9I8QP0Ut8AZPY2aeJd05z61O17gyMJDDifQ1ZXnAJWT1K1uRQFRkjdWrorqCn1Z95qe5I5WGrQK1lsxsDt35FW2SPMVGmXiYiXbkhVIRY41DO4rl2Ig3M3L3ViJFllvPv6S2HExkp1pcFOscB8amQkVpW4yxvPGqs3lGJ2x2JwOTNe05LoJwQZZ7eLDk3I6jz_f6qY-Kih9_Nqk6AkiFpbA4OJo64tY5Q1rt9Su-TovILwzXb5xXKINQbyGD3pt"/>
+</div>
+<div>
+<p class="font-bold text-primary">The Architecture of Light</p>
+<p class="text-xs text-on-surface-variant">Member: John Doe (ID: 442)</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">Due Date</p>
+<p class="font-bold text-primary">Oct 24, 2023</p>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-12 h-16 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="minimalist book cover design with abstract geometric shapes in soft terracotta and beige colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-3RP49mTo-QMf_V8T8K0_gj9PT3xcmO00l4HJXwQsNEisgjyaJN5SszgT7z4jCMRrAapz8BqX2fBH8rD2Ia2DEwM6-5kBmpJJTxgJXzNdYKkR-j_3BFH9QjZHParcS_JVUVqMNFo7ewsWRREc6E-5P00xMOctcuQfrrvEYTh_hMVB6qFT1NOyQ3TmNDojWSTRjjmgLlKEkkz9tnMWprZPh2_4E_8Xj2UWyuBN062COExJ7t0AUlpVvCSWNrr4JFzlOy2t2Qc9sGDb"/>
+</div>
+<div>
+<p class="font-bold text-primary">Urban Dynamics</p>
+<p class="text-xs text-on-surface-variant">Member: Sarah Chen (ID: 901)</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">Due Date</p>
+<p class="font-bold text-primary">Nov 02, 2023</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Status & Overdue Panel (Right Column) -->
+<section class="col-span-12 lg:col-span-5 space-y-8">
+<!-- Glassmorphic Stats Card -->
+<div class="relative overflow-hidden bg-primary p-8 rounded-xl text-white shadow-2xl">
+<div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-8">
+<span class="material-symbols-outlined text-4xl opacity-50" style="font-variation-settings: 'FILL' 1;">account_balance</span>
+<span class="bg-white/20 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md">Live Status</span>
+</div>
+<h4 class="text-lg font-medium opacity-80">Active Loans</h4>
+<p class="text-5xl font-extrabold mb-4 tracking-tight">1,284</p>
+<div class="flex gap-4">
+<div class="flex-1 bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+<p class="text-[10px] uppercase font-bold opacity-60">Today</p>
+<p class="text-xl font-bold">+12</p>
+</div>
+<div class="flex-1 bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+<p class="text-[10px] uppercase font-bold opacity-60">Returns</p>
+<p class="text-xl font-bold">48</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Late Fees / Critical Actions -->
+<div class="bg-surface-container-high rounded-xl p-8 border border-outline-variant/10">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Pending Return Review</h3>
+<span class="bg-error-container text-on-error-container text-[10px] font-bold px-2 py-0.5 rounded-full">3 OVERDUE</span>
+</div>
+<div class="space-y-6">
+<!-- Late Return Detail -->
+<div class="group cursor-pointer">
+<div class="flex items-start gap-4">
+<div class="p-2 bg-error-container rounded-lg">
+<span class="material-symbols-outlined text-on-error-container">warning</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="font-bold text-primary">Classical Philosophy</p>
+<p class="text-error font-extrabold">$14.50</p>
+</div>
+<p class="text-xs text-on-surface-variant">Member: Marcus Aurelius (ID: 001)</p>
+<div class="mt-2 flex items-center gap-2">
+<span class="text-[10px] bg-error-container/50 text-on-error-container px-2 py-0.5 rounded-full">12 Days Overdue</span>
+</div>
+</div>
+</div>
+</div>
+<div class="h-px bg-outline-variant/20"></div>
+<!-- Late Return Detail -->
+<div class="group cursor-pointer">
+<div class="flex items-start gap-4">
+<div class="p-2 bg-error-container rounded-lg">
+<span class="material-symbols-outlined text-on-error-container">warning</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<p class="font-bold text-primary">Genetic Sequencing</p>
+<p class="text-error font-extrabold">$2.00</p>
+</div>
+<p class="text-xs text-on-surface-variant">Member: Dr. Rosalind (ID: 882)</p>
+<div class="mt-2 flex items-center gap-2">
+<span class="text-[10px] bg-error-container/50 text-on-error-container px-2 py-0.5 rounded-full">2 Days Overdue</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-8 bg-surface-container-lowest border border-primary-container/10 text-primary py-3 rounded-xl font-headline font-bold text-sm hover:bg-white transition-all shadow-sm">
+                            View All Delinquent Accounts
+                        </button>
+</div>
+</section>
+</div>
+<!-- Footer Meta -->
+<footer class="mt-24 pt-12 border-t border-outline-variant/10 flex justify-between items-center text-on-surface-variant text-xs font-medium">
+<div class="flex gap-8">
+<span>System Status: <span class="text-secondary font-bold">OPTIMAL</span></span>
+<span>Database Sync: <span class="text-secondary font-bold">2m ago</span></span>
+</div>
+<div class="flex gap-4 italic opacity-60">
+<span>Curating Academic Excellence Since 1924</span>
+</div>
+</footer>
+</div>
+</main>
+<!-- Contextual FAB (Only on main dashboard, but kept for pattern) -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-transform z-50">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">barcode_scanner</span>
+</button>
+</body></html>

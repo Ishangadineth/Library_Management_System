@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Book Inventory - The Academic Curator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-fixed-variant": "#1f477b",
+                        "secondary": "#48626e",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#021f29",
+                        "surface-tint": "#3a5f94",
+                        "surface-variant": "#e2e2e7",
+                        "secondary-fixed": "#cbe7f5",
+                        "tertiary-fixed-dim": "#ffb690",
+                        "on-primary-container": "#799dd6",
+                        "tertiary": "#381300",
+                        "secondary-container": "#cbe7f5",
+                        "primary-fixed-dim": "#a7c8ff",
+                        "on-secondary-container": "#4e6874",
+                        "on-secondary": "#ffffff",
+                        "background": "#f9f9fe",
+                        "surface-container": "#eeedf2",
+                        "surface-bright": "#f9f9fe",
+                        "on-surface-variant": "#43474f",
+                        "tertiary-fixed": "#ffdbca",
+                        "on-background": "#1a1c1f",
+                        "on-tertiary-fixed-variant": "#723610",
+                        "on-tertiary-fixed": "#341100",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#737780",
+                        "tertiary-container": "#592300",
+                        "inverse-surface": "#2f3034",
+                        "on-secondary-fixed-variant": "#304a55",
+                        "primary-container": "#003366",
+                        "surface-dim": "#dad9de",
+                        "secondary-fixed-dim": "#afcbd8",
+                        "inverse-primary": "#a7c8ff",
+                        "on-primary": "#ffffff",
+                        "surface-container-high": "#e8e8ed",
+                        "primary-fixed": "#d5e3ff",
+                        "inverse-on-surface": "#f1f0f5",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#f4f3f8",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c3c6d1",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#d8885c",
+                        "on-surface": "#1a1c1f",
+                        "surface-container-highest": "#e2e2e7",
+                        "primary": "#001e40",
+                        "on-primary-fixed": "#001b3c",
+                        "error-container": "#ffdad6",
+                        "surface": "#f9f9fe"
+                    },
+                    fontFamily: {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f9fe;
+        }
+        .editorial-shadow {
+            box-shadow: 0 24px 48px -12px rgba(0, 30, 64, 0.06);
+        }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#f4f3f8] dark:bg-slate-900 flex flex-col py-8 z-50">
+<div class="px-6 mb-10">
+<h1 class="text-2xl font-bold text-[#001e40] dark:text-blue-200 font-headline tracking-tight">The Academic Curator</h1>
+<p class="text-xs text-on-surface-variant font-medium mt-1">Main Administration</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 space-x-3 text-slate-600 dark:text-slate-400 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-headline font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center px-6 py-3 space-x-3 bg-white dark:bg-slate-800 text-[#001e40] dark:text-blue-200 rounded-l-none rounded-r-full shadow-sm font-headline font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="library_books">library_books</span>
+<span>Book Inventory</span>
+</a>
+<a class="flex items-center px-6 py-3 space-x-3 text-slate-600 dark:text-slate-400 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-headline font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Member Management</span>
+</a>
+<a class="flex items-center px-6 py-3 space-x-3 text-slate-600 dark:text-slate-400 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-headline font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="swap_horizontal">swap_horiz</span>
+<span>Issue/Return</span>
+</a>
+<a class="flex items-center px-6 py-3 space-x-3 text-slate-600 dark:text-slate-400 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-headline font-semibold tracking-wide text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-headline font-bold flex items-center justify-center space-x-2 shadow-lg scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+<span>Add New Entry</span>
+</button>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-[#f9f9fe]/80 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-8 z-40 border-b border-slate-200/15 dark:border-slate-800/15">
+<div class="flex items-center flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl" data-icon="search">search</span>
+<input class="w-full bg-surface-container-highest border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-surface-tint transition-all outline-none" placeholder="Search Academic Curator..." type="text"/>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<div class="flex items-center space-x-4">
+<button class="text-slate-500 dark:text-slate-400 hover:text-[#003366] transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-slate-500 dark:text-slate-400 hover:text-[#003366] transition-all">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<div class="h-8 w-px bg-outline-variant/30"></div>
+<div class="flex items-center space-x-3 cursor-pointer group">
+<div class="text-right">
+<p class="text-xs font-bold text-primary dark:text-blue-200">Quick Actions</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Librarian Profile</p>
+</div>
+<img class="w-10 h-10 rounded-full object-cover border-2 border-primary-container group-hover:border-primary transition-all" data-alt="professional portrait of a librarian with a friendly expression in a modern library setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlllxSITHpzDhcvE2XBbAEi8k-KFZgWsotDWrET2Xw3GKPfv7dBxZAzOIloY6TSYzxZGHy42pNBg__UXxvgPBz1f4YJVma759ZrvcWMpB4T2ZjDhQ-RTE7uqR13h8CjAmGu9i5gZlVUbQMz-PQcXpVkJ55UQ3Ejy3OoDU5m4N5nwLHoW4sT2oqqiNRHfnWkPKaCkokeC8lqigEw09z372nn3ECk2IQyQ7qBYDCoMiEJOF7cMFeowheLR-tNhxNkdeXS0B1QjmeutSA"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 pt-24 px-10 pb-12 min-h-screen bg-surface">
+<!-- Header Section -->
+<div class="flex items-end justify-between mb-12">
+<div class="space-y-2">
+<h2 class="text-4xl font-headline font-extrabold text-primary tracking-tight">Book Inventory</h2>
+<p class="text-on-surface-variant font-body">Manage and curate the academic collection with precision.</p>
+</div>
+<div class="flex items-center space-x-3">
+<button class="px-6 py-2.5 bg-surface-container-high text-on-primary-fixed-variant rounded-xl font-headline font-bold text-sm hover:bg-surface-container-highest transition-colors">
+                    Export Catalog
+                </button>
+<button class="px-6 py-2.5 bg-gradient-to-r from-primary to-primary-container text-on-primary rounded-xl font-headline font-bold text-sm shadow-md flex items-center space-x-2">
+<span class="material-symbols-outlined text-lg" data-icon="library_add">library_add</span>
+<span>Add New Book</span>
+</button>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="flex items-center space-x-4 mb-8">
+<div class="flex items-center space-x-2 bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/10">
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Category:</span>
+<select class="bg-transparent border-none text-sm font-semibold text-primary focus:ring-0 cursor-pointer">
+<option>All Volumes</option>
+<option>Mathematics</option>
+<option>Philosophy</option>
+<option>Computer Science</option>
+<option>Social Sciences</option>
+</select>
+</div>
+<div class="flex items-center space-x-2 bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/10">
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Status:</span>
+<select class="bg-transparent border-none text-sm font-semibold text-primary focus:ring-0 cursor-pointer">
+<option>All States</option>
+<option>Available</option>
+<option>Borrowed</option>
+<option>Reserved</option>
+</select>
+</div>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+</button>
+</div>
+<!-- Inventory List (The Curated List Pattern) -->
+<div class="bg-surface-container-low rounded-3xl overflow-hidden editorial-shadow">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/50">
+<th class="px-8 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.1em] font-label">Book Details</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.1em] font-label">Identifier (ISBN)</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.1em] font-label">Classification</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.1em] font-label text-center">Availability</th>
+<th class="px-8 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.1em] font-label text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-16 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
+<img class="w-full h-full object-cover" data-alt="minimalist book cover with geometric shapes in deep blues and gold accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-3ZwWkmGyNHJohmK_p7jEeLv7cGwJzB_stilQLwQNINIHt1KsiXj7TO5IX61pwy8w_zl3JGH41yfI0lLve-XR9fLF5lds6i0JT72lfkxRjedl9Oi2yZBS6RGOBYxWoQHzbwHUeFuk1aMIqfwUzd7zpqKgooTq-V45FGfB8i80e3BqEaTdTgW2Wd5fDaC3Z7Nz_J0m78TIynQzUuLUo-mWEl_onyWQD1CYbln7K6Vxrm8oFF87s12b2iOTvyqiFtBmyEe0vhzpBYpV"/>
+</div>
+<div>
+<p class="text-primary font-headline font-bold text-base">The Architecture of Thought</p>
+<p class="text-sm text-on-surface-variant font-medium">Dr. Elias Thorne</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 font-mono text-xs text-on-surface-variant">978-3-16-148410-0</td>
+<td class="px-6 py-6">
+<span class="text-sm font-semibold text-primary-container bg-primary-fixed/30 px-3 py-1 rounded-lg">Philosophy</span>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary mr-2"></span>
+                                Available
+                            </span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="p-2 text-on-surface-variant hover:text-primary-container hover:bg-surface-container-high rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-16 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
+<img class="w-full h-full object-cover" data-alt="old vintage book on a wooden table with soft dramatic library lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrmbvDjOPjylk2HS8jngn8Kleon93pM7KI1VpaZSQUXbfqVGMO5s5w--C0uT05AHxn5yqfFNfhy61LzJSLckvGFaZbvFOoPRC4spQJ8G4aFjcNkSs_oYdF8rjjYo3Nm3XDxqvAxNMYiZLYjjOy0e0Um26I2zgnpgnB8bEDpWBlfB5xkXNFqrCockbcNKzOmtTkP8AMqC7JBEJqBTsK27fl_dZ3YaUjVvK6jxOXXaB-6Zn17L6rQ38evigy1IskCdKwyKhnLNZHhRse"/>
+</div>
+<div>
+<p class="text-primary font-headline font-bold text-base">Quantum Mechanics Vol. II</p>
+<p class="text-sm text-on-surface-variant font-medium">Prof. Sarah Jenkins</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 font-mono text-xs text-on-surface-variant">978-0-12-345678-9</td>
+<td class="px-6 py-6">
+<span class="text-sm font-semibold text-primary-container bg-primary-fixed/30 px-3 py-1 rounded-lg">Physics</span>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-error-container text-on-error-container">
+<span class="w-1.5 h-1.5 rounded-full bg-error mr-2"></span>
+                                Overdue
+                            </span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="p-2 text-on-surface-variant hover:text-primary-container hover:bg-surface-container-high rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-16 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
+<img class="w-full h-full object-cover" data-alt="open book showing detailed scientific illustrations of neural pathways" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-BnJTc1vjv2XTnjekeGTxUut-Nqr4lkJ8JfQPB-eLJQ3AP__lQAqo6MvkPqmR49HQzlTvatCL11RW4GopqTGV8kzT5_tzj5Xl979tzEDdE6LUPAVuaqrOkZ5AkCLV89kNZ7NRxlwHURrlRS1Q0l1kYMGGx0iiOpbiA7I7TcGVomjvLPL6n7AP76d6wzowt2tHGe7yOwErbUN-k_RIig60cfkCOULyKaY6tomAtdFsus7y4gNXkDnvs01-4Nd3YH7k-tkl4RY3KhAa"/>
+</div>
+<div>
+<p class="text-primary font-headline font-bold text-base">Neural Networks: A New Frontier</p>
+<p class="text-sm text-on-surface-variant font-medium">Alan M. Turing</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 font-mono text-xs text-on-surface-variant">978-1-56-619909-4</td>
+<td class="px-6 py-6">
+<span class="text-sm font-semibold text-primary-container bg-primary-fixed/30 px-3 py-1 rounded-lg">AI &amp; Tech</span>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-secondary-container text-on-secondary-container">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary mr-2"></span>
+                                Available
+                            </span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="p-2 text-on-surface-variant hover:text-primary-container hover:bg-surface-container-high rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-lowest transition-colors group">
+<td class="px-8 py-6">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-16 bg-surface-variant rounded-lg overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
+<img class="w-full h-full object-cover" data-alt="stack of diverse books with colorful spines in a clean modern library setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFXfJAxxgyokXfiectc9pkigd_JZY4OI03aKqcKPEqPQUBdZM5t5UQPScC9FDnAcLWOVpo1XKW_OrgoVkpX5dyuAu12-FKXDtASb56BxyOFvHbReahk7FZq2Yt3ZVupXVkDadl12tUur3jx72ZyaaZUfWwMgT-D2grOMRlnOdrUK6iNORevwKVX_G13FiovFGJTC66iua_wG_E1t1wQkMu-OAQE0Bigy6v3MS-ik6zLrBcovwTgxSWrAhF8CkX0nZhlvlwVsSJftx0"/>
+</div>
+<div>
+<p class="text-primary font-headline font-bold text-base">Historical Contexts of 19th Century</p>
+<p class="text-sm text-on-surface-variant font-medium">L. M. Montgomery</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 font-mono text-xs text-on-surface-variant">978-0-67-172365-1</td>
+<td class="px-6 py-6">
+<span class="text-sm font-semibold text-primary-container bg-primary-fixed/30 px-3 py-1 rounded-lg">History</span>
+</td>
+<td class="px-6 py-6 text-center">
+<span class="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-tertiary-fixed text-on-tertiary-fixed-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-fixed-variant mr-2"></span>
+                                Reserved
+                            </span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="p-2 text-on-surface-variant hover:text-primary-container hover:bg-surface-container-high rounded-full transition-all">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination/Footer -->
+<div class="px-8 py-5 bg-surface-container-high/30 flex items-center justify-between border-t border-outline-variant/10">
+<p class="text-xs font-medium text-on-surface-variant">Showing <span class="font-bold text-primary">1 - 4</span> of 1,248 volumes</p>
+<div class="flex items-center space-x-2">
+<button class="p-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-base" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="px-3 py-1 rounded-lg bg-primary text-on-primary text-xs font-bold">1</button>
+<button class="px-3 py-1 rounded-lg hover:bg-surface-container-high text-xs font-bold text-primary">2</button>
+<button class="px-3 py-1 rounded-lg hover:bg-surface-container-high text-xs font-bold text-primary">3</button>
+<span class="text-on-surface-variant text-xs font-bold">...</span>
+<button class="px-3 py-1 rounded-lg hover:bg-surface-container-high text-xs font-bold text-primary">312</button>
+<button class="p-1.5 rounded-lg border border-outline-variant/20 hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-base" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Stats Cards (Asymmetric Bento Snippet) -->
+<div class="mt-12 grid grid-cols-12 gap-6">
+<div class="col-span-8 bg-primary-container p-8 rounded-3xl relative overflow-hidden group">
+<div class="relative z-10 space-y-4">
+<h3 class="text-primary-fixed-dim font-headline font-bold text-lg">Inventory Utilization</h3>
+<div class="flex items-end space-x-12">
+<div>
+<p class="text-4xl font-headline font-extrabold text-white">84%</p>
+<p class="text-xs text-primary-fixed uppercase font-bold tracking-widest mt-1">Circulation Rate</p>
+</div>
+<div class="flex-1 h-3 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed-dim w-[84%] rounded-full shadow-[0_0_12px_rgba(167,200,255,0.4)]"></div>
+</div>
+</div>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-white/5 text-[12rem] pointer-events-none" data-icon="auto_graph">auto_graph</span>
+</div>
+<div class="col-span-4 bg-secondary-container/30 p-8 rounded-3xl border border-secondary-container/50">
+<div class="flex flex-col h-full justify-between">
+<div>
+<span class="material-symbols-outlined text-on-secondary-container mb-4" data-icon="history">history</span>
+<h3 class="text-on-secondary-container font-headline font-bold text-lg">Recently Modified</h3>
+</div>
+<div>
+<div class="flex -space-x-3 overflow-hidden">
+<img class="inline-block h-8 w-8 rounded-full ring-2 ring-surface" data-alt="portrait of a library assistant working on digital records" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHOb2WVvHQS35XISSqvYcd-O20Rd9NYFKfdL2nHIp8xg1ukcBu9VcL-6rNJDR4eRwpIj7hCmYY0a09ugFTyXSwHaBt4Ct_gRx7NMMyzuo92fFpkRv0ARBqlHU4rk9gycSzu-Zaw2eWeLPGKLixIPFWyxyadbsU5D3MICHRK49BYwq1EIFQcZOFU6w1go_8RDntCn7tzr-qH7jrMJX7Zc5NmMW9wCpnCC_w1kgaxRCb8gBeazy_RODUENbSjuKdmJqJP3Bmo5WWCMmn"/>
+<img class="inline-block h-8 w-8 rounded-full ring-2 ring-surface" data-alt="portrait of a senior librarian inspecting inventory" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU1fV7ZYPwtepOuFborp4yoE1nVtPQl2uAob0nHEQqfRn4RMjn01HNZTmJSSrjYtKcnAu9gfem3iKuBHAishHnRTPM4L24WC9_4FDNcYCTXgQ0SS2PCnU0KcTZoXU_1yZFofvgkjrFbBUw1D09InOtyJ3GG_jCFACAYQI80WELFbSAYY7rvNQin8ddUkVFKxd62USVLXJtfHfUyeMfBXPk28dZr2iQrK3AUbj5_yTgNELjuT17S0HN9JrjsZoLNOzgwCbjDHyooBkB"/>
+<div class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-[10px] font-bold text-white ring-2 ring-surface">+4</div>
+</div>
+<p class="text-xs text-on-secondary-container font-medium mt-3">Active curation in progress</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

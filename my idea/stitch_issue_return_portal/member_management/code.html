@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "on-primary-fixed-variant": "#1f477b",
+            "secondary": "#48626e",
+            "on-tertiary": "#ffffff",
+            "on-secondary-fixed": "#021f29",
+            "surface-tint": "#3a5f94",
+            "surface-variant": "#e2e2e7",
+            "secondary-fixed": "#cbe7f5",
+            "tertiary-fixed-dim": "#ffb690",
+            "on-primary-container": "#799dd6",
+            "tertiary": "#381300",
+            "secondary-container": "#cbe7f5",
+            "primary-fixed-dim": "#a7c8ff",
+            "on-secondary-container": "#4e6874",
+            "on-secondary": "#ffffff",
+            "background": "#f9f9fe",
+            "surface-container": "#eeedf2",
+            "surface-bright": "#f9f9fe",
+            "on-surface-variant": "#43474f",
+            "tertiary-fixed": "#ffdbca",
+            "on-background": "#1a1c1f",
+            "on-tertiary-fixed-variant": "#723610",
+            "on-tertiary-fixed": "#341100",
+            "surface-container-lowest": "#ffffff",
+            "outline": "#737780",
+            "tertiary-container": "#592300",
+            "inverse-surface": "#2f3034",
+            "on-secondary-fixed-variant": "#304a55",
+            "primary-container": "#003366",
+            "surface-dim": "#dad9de",
+            "secondary-fixed-dim": "#afcbd8",
+            "inverse-primary": "#a7c8ff",
+            "on-primary": "#ffffff",
+            "surface-container-high": "#e8e8ed",
+            "primary-fixed": "#d5e3ff",
+            "inverse-on-surface": "#f1f0f5",
+            "on-error": "#ffffff",
+            "surface-container-low": "#f4f3f8",
+            "on-error-container": "#93000a",
+            "outline-variant": "#c3c6d1",
+            "error": "#ba1a1a",
+            "on-tertiary-container": "#d8885c",
+            "on-surface": "#1a1c1f",
+            "surface-container-highest": "#e2e2e7",
+            "primary": "#001e40",
+            "on-primary-fixed": "#001b3c",
+            "error-container": "#ffdad6",
+            "surface": "#f9f9fe"
+          },
+          fontFamily: {
+            "headline": ["Manrope"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c3c6d1;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body class="bg-background font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r-0 bg-[#f4f3f8] dark:bg-slate-900 flex flex-col h-full py-8 z-50">
+<div class="px-6 mb-10">
+<h1 class="text-2xl font-bold text-[#001e40] dark:text-blue-200 font-headline tracking-tight">The Academic Curator</h1>
+<p class="text-xs text-on-surface-variant font-medium mt-1 uppercase tracking-widest">Main Administration</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center px-6 py-3 mx-0 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-headline font-semibold tracking-wide text-sm group scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="dashboard">dashboard</span>
+        Dashboard
+      </a>
+<a class="flex items-center px-6 py-3 mx-0 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-headline font-semibold tracking-wide text-sm group scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="library_books">library_books</span>
+        Book Inventory
+      </a>
+<!-- Active State for Member Management -->
+<a class="flex items-center px-6 py-3 mx-0 bg-white dark:bg-slate-800 text-[#001e40] dark:text-blue-200 rounded-l-none rounded-r-full shadow-sm font-headline font-semibold tracking-wide text-sm group scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+        Member Management
+      </a>
+<a class="flex items-center px-6 py-3 mx-0 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-headline font-semibold tracking-wide text-sm group scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="swap_horizontal">swap_horiz</span>
+        Issue/Return
+      </a>
+<a class="flex items-center px-6 py-3 mx-0 text-slate-600 dark:text-slate-400 hover:text-[#001e40] dark:hover:text-blue-300 hover:bg-[#e8e8ed] dark:hover:bg-slate-800 transition-colors duration-200 font-headline font-semibold tracking-wide text-sm group scale-95 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined mr-3" data-icon="settings">settings</span>
+        Settings
+      </a>
+</nav>
+<div class="px-6 mt-auto">
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-3 px-4 rounded-xl flex items-center justify-center font-semibold text-sm shadow-lg hover:shadow-primary-container/20 transition-all active:scale-95">
+<span class="material-symbols-outlined mr-2 text-[20px]" data-icon="add">add</span>
+        Add New Entry
+      </button>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-[#f9f9fe]/80 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-8 z-40 border-b border-slate-200/15 dark:border-slate-800/15 transition-all duration-300 ease-in-out">
+<div class="flex items-center gap-6">
+<div class="relative w-96 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+<input class="w-full bg-surface-container-highest border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-surface-tint outline-none transition-all placeholder:text-on-surface-variant/60" placeholder="Search members by name or ID..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:text-[#003366] dark:hover:text-blue-300 transition-all">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:text-[#003366] dark:hover:text-blue-300 transition-all">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant/30 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-xs font-bold text-primary dark:text-blue-200">Eleanor Vance</p>
+<p class="text-[10px] text-on-surface-variant font-medium">Head Librarian</p>
+</div>
+<img alt="Librarian Profile" class="w-9 h-9 rounded-full bg-surface-container-high border-2 border-white shadow-sm" data-alt="professional portrait of a librarian with short dark hair wearing glasses and a navy sweater in a bright office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPMKlpxxNgNXaOmySPSOzh-dHzoYhZl3Q09jujd_BCmFPijR3OrvZHAYxopddGK7_SphsTFe0rWtfONiEObm3GuXMuP9dOdxa3LhmVUgkTmcW3KdfjK-njH5taIO4u1BK69FswzP03ROy-747pXfUODksxXwhegjUr_xWbiXSE9XoGXZBA2zJAm1WMnxIz2EzafcyseImI9hc-kZ_9kh3VgchDGNGn0DY1d-fDwTR6sGdrH5G0WNbNWq1QF5EBNykh0rq_omSoteww"/>
+</div>
+</div>
+</header>
+<!-- Canvas -->
+<section class="pt-24 pb-12 px-8">
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-10">
+<div>
+<h2 class="text-3xl font-headline font-extrabold text-primary tracking-tight">Member Management</h2>
+<p class="text-on-surface-variant mt-1">Oversee library memberships, status, and historical data.</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-container-high text-on-primary-fixed-variant px-5 py-2.5 rounded-xl font-semibold text-sm flex items-center transition-all hover:bg-surface-container-highest active:scale-95">
+<span class="material-symbols-outlined mr-2 text-lg" data-icon="filter_list">filter_list</span>
+            Filter
+          </button>
+<button class="bg-gradient-to-br from-primary to-primary-container text-white px-6 py-2.5 rounded-xl font-semibold text-sm flex items-center shadow-lg shadow-primary/10 transition-all hover:translate-y-[-1px] active:scale-95">
+<span class="material-symbols-outlined mr-2 text-lg" data-icon="person_add">person_add</span>
+            Add New Member
+          </button>
+</div>
+</div>
+<!-- Bento-style Stats Grid -->
+<div class="grid grid-cols-4 gap-6 mb-12">
+<div class="bg-surface-container-low p-6 rounded-2xl flex flex-col justify-between border-b-4 border-primary">
+<span class="material-symbols-outlined text-primary mb-4" data-icon="group">group</span>
+<div>
+<p class="text-3xl font-headline font-extrabold text-primary">1,284</p>
+<p class="text-sm font-medium text-on-surface-variant uppercase tracking-wider">Total Members</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-2xl flex flex-col justify-between border-b-4 border-secondary">
+<span class="material-symbols-outlined text-secondary mb-4" data-icon="check_circle">check_circle</span>
+<div>
+<p class="text-3xl font-headline font-extrabold text-primary">1,150</p>
+<p class="text-sm font-medium text-on-surface-variant uppercase tracking-wider">Active Users</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-2xl flex flex-col justify-between border-b-4 border-error">
+<span class="material-symbols-outlined text-error mb-4" data-icon="warning">warning</span>
+<div>
+<p class="text-3xl font-headline font-extrabold text-primary">42</p>
+<p class="text-sm font-medium text-on-surface-variant uppercase tracking-wider">Suspended</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-2xl flex flex-col justify-between border-b-4 border-tertiary-container">
+<span class="material-symbols-outlined text-tertiary-container mb-4" data-icon="new_releases">new_releases</span>
+<div>
+<p class="text-3xl font-headline font-extrabold text-primary">87</p>
+<p class="text-sm font-medium text-on-surface-variant uppercase tracking-wider">New This Month</p>
+</div>
+</div>
+</div>
+<!-- Table Container -->
+<div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-8 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.05em]">Member Name</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.05em]">Member ID</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.05em]">Type</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.05em]">Join Date</th>
+<th class="px-6 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.05em]">Status</th>
+<th class="px-8 py-5 text-[11px] font-bold text-on-surface-variant uppercase tracking-[0.05em] text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors duration-200">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<img alt="JV" class="w-10 h-10 rounded-full bg-primary-fixed text-primary font-bold flex items-center justify-center text-xs" data-alt="clean geometric avatar icon with initials JV in a professional navy and light blue color scheme" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCz-oBbKJnmgEMqW563Dv1gUuTdc3leuig-Z_zx_KTj98CeY2j9Sfi0MTXcPINtUa6YphaZ4RusK3lzkAdmy_HITrh4-WvRDceRYxOMiz94GuRzX-eWFvECEeQra8QdsQq3Xg2o4jOVrBKHSqKlHi9xDM6IoJUWZQzFvp_LVZEp2yH4Bm2b5MCXynKJCUEWbW_9E6VPo1D_h4T9uQngcR02Gy4p1AwoipbPmtOzluQONsk7wScif4-6mqBYopaEnleGopF9c2ErIVmZ"/>
+<div>
+<p class="text-sm font-semibold text-primary">Julian Vance</p>
+<p class="text-xs text-on-surface-variant">julian.v@university.edu</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-sm font-medium text-on-surface">AC-2024-9981</td>
+<td class="px-6 py-6 text-sm text-on-surface">Faculty</td>
+<td class="px-6 py-6 text-sm text-on-surface">Jan 12, 2024</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[11px] font-bold uppercase tracking-wider">Active</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors duration-200">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<img alt="SK" class="w-10 h-10 rounded-full bg-secondary-fixed text-secondary font-bold flex items-center justify-center text-xs" data-alt="minimalist avatar placeholder with initials SK in soft corporate blue tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGx0o4AwLu4GPuMJPpRu9jyYjRWnSlVCAXSOnlLjQlQkO-OWOypjHSgCuFwnzKkIyrgQnDPBnCd9dTqwHh9ZeMfY3au7fQ_6_mqzW93FZUFoYeK7aR3rWKE8RIbp0F6zFG5BH5VJgwKuMdKBzZcoaZVhJrhP7F9yb-CffvQ_xV0UoxLvdVEdNS4B0f2aJOQ_URAFnJx6UfwF412PY1yrDt-TYV1FvzRGFqnF9Vwvb2sEWFWgSvjmsCWtzywsASZMK-6q-vQuV1V5Ei"/>
+<div>
+<p class="text-sm font-semibold text-primary">Sarah Kensington</p>
+<p class="text-xs text-on-surface-variant">s.kensington@archives.org</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-sm font-medium text-on-surface">AC-2023-4410</td>
+<td class="px-6 py-6 text-sm text-on-surface">External Scholar</td>
+<td class="px-6 py-6 text-sm text-on-surface">Nov 05, 2023</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 bg-error-container text-on-error-container rounded-full text-[11px] font-bold uppercase tracking-wider">Suspended</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors duration-200">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<img alt="LC" class="w-10 h-10 rounded-full bg-tertiary-fixed text-tertiary font-bold flex items-center justify-center text-xs" data-alt="graphic avatar representation for Liam C using muted earth tones and modern typography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLzfdO-PREJX4Vxk112zumTphK5PrKH9WszKJiBX4cHM5iXrS0_OcUgZfyCH1kh9_i2cwYCRKwUYrU7Ke8WadIPzytTcsN3pTE3DGKRrAsKIHFGVM1lpVqvHeqhqqoikKACabjDJSwusXCMHuRB9CBOH-2IQD_zLJRtn-yHXLwOurTZGfv2kfg6lp54_jvjG2loA9oLGGbdVJvFl5npXtrAhXHbjH9MFivn1OfHAN5DtX513D64tEiamWRCMGKrvLgAP7Upn0-T0Qe"/>
+<div>
+<p class="text-sm font-semibold text-primary">Liam Chen</p>
+<p class="text-xs text-on-surface-variant">l.chen@student.library.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-sm font-medium text-on-surface">AC-2024-1102</td>
+<td class="px-6 py-6 text-sm text-on-surface">Post-Graduate</td>
+<td class="px-6 py-6 text-sm text-on-surface">Feb 28, 2024</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[11px] font-bold uppercase tracking-wider">Active</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors duration-200">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<img alt="MT" class="w-10 h-10 rounded-full bg-primary-fixed text-primary font-bold flex items-center justify-center text-xs" data-alt="professional profile icon for Marcus T with contrasting blue and white academic theme" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcilNxUkel814zKTRP73jCvR-7NpLCuioD4De5FUU-03qWsmpAUAu4d5UmrnceUumwbgxHCxTahSydNciApYTnkTagImOwDDDUGparMA_nAc5sh1rf2V8qyZwppH7cPwmo2_gttpV3ZUwJoIfWbWY_fJXz73p9VWC8K35q-kjGOnnOFg9kvKnCp_rf8bK2UX0IKsexAWzrPI6sZwaZKvFJoP1lZXAFqBRMJ_HA5-aDyvp9aTw0TdOZh2B35DmQg4Ka5eRX_76giOck"/>
+<div>
+<p class="text-sm font-semibold text-primary">Marcus Thorne</p>
+<p class="text-xs text-on-surface-variant">m.thorne@historical.edu</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-sm font-medium text-on-surface">AC-2022-8874</td>
+<td class="px-6 py-6 text-sm text-on-surface">Faculty</td>
+<td class="px-6 py-6 text-sm text-on-surface">Sep 15, 2022</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[11px] font-bold uppercase tracking-wider">Active</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-low transition-colors duration-200">
+<td class="px-8 py-6">
+<div class="flex items-center gap-4">
+<img alt="EG" class="w-10 h-10 rounded-full bg-secondary-fixed text-secondary font-bold flex items-center justify-center text-xs" data-alt="elegant avatar for Elena G featuring soft blue background and sharp sans-serif font" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPSV2ahBdNmw0Z4iJs2qmB36k0ncnRvwY_oZS43WaXApkGYphuvRtCibXYXuoQRpj6tkIvdablYSBAKQTlaFFnYleXfStdrAMwkS7YJbwHHzitaRkzsXrnm5RTTb8vyvJ6lqBYANxBU0f15IeSyie0yQeiQcFpss4A0N-R3iyTiUdquatjuDv5drMII5kwd1tv9V5Gry9BND3NV3a-IAskt5bXaHGeUTKJu7yh1GQXIdeOhU0wyAnycJ7Zy_nXi9bNVTnDJhBHs4Ra"/>
+<div>
+<p class="text-sm font-semibold text-primary">Elena Garcia</p>
+<p class="text-xs text-on-surface-variant">garcia.e@polytech.edu</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-6 text-sm font-medium text-on-surface">AC-2024-2209</td>
+<td class="px-6 py-6 text-sm text-on-surface">Undergraduate</td>
+<td class="px-6 py-6 text-sm text-on-surface">Mar 04, 2024</td>
+<td class="px-6 py-6">
+<span class="px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-[11px] font-bold uppercase tracking-wider">Active</span>
+</td>
+<td class="px-8 py-6 text-right">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination / Footer -->
+<div class="px-8 py-5 bg-surface-container-low/30 border-t border-outline-variant/10 flex items-center justify-between">
+<p class="text-xs text-on-surface-variant font-medium">Showing 1 to 5 of 1,284 members</p>
+<div class="flex gap-2">
+<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-primary text-white text-xs font-bold flex items-center justify-center">1</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high text-on-surface-variant text-xs font-bold flex items-center justify-center">2</button>
+<button class="w-8 h-8 rounded-lg hover:bg-surface-container-high text-on-surface-variant text-xs font-bold flex items-center justify-center">3</button>
+<button class="p-2 rounded-lg hover:bg-surface-container-high transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined text-lg" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Quick View Glass Modal (Simulated Right Panel) -->
+<aside class="fixed top-20 right-8 w-80 bg-surface-container-lowest/80 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl z-30 transition-all">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline font-bold text-primary">Member Insight</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer" data-icon="close">close</span>
+</div>
+<div class="space-y-6">
+<div class="text-center">
+<div class="relative inline-block">
+<img alt="Julian Vance" class="w-20 h-20 rounded-full mx-auto border-4 border-white shadow-md" data-alt="larger view of the Julian Vance avatar featuring high contrast colors and crisp line work" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBHF5wO_8sD9td0_eiE95db9YK-UXAeI8fOclAuhV_FLhaV1xX4QYp3U2pCTXz8TvovHGK8VX-6TzfBXD0KK8CVCXLscuMyjQPBKV4KyIXIWH3eH1QjFOhHmuUiuU63Y02TdUK7BzlcHz41SHcLKLVLoZEUqy-rwO8xBQFtMMe1qVq6RcH1Wk0gdx4W2deiWvLNeeI10lTwGB0FKw2YgJWuiaWtzcE9KDVJxBR9nkyCgnZ6vCsvD5AUArJnhx28sQ6d0cWBpyoCy4U"/>
+<div class="absolute bottom-0 right-0 w-6 h-6 bg-secondary-container border-2 border-white rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-on-secondary-container font-bold" data-icon="check" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+</div>
+<h4 class="mt-4 font-headline font-bold text-lg text-primary leading-tight">Julian Vance</h4>
+<p class="text-xs text-on-surface-variant font-medium tracking-wide">ID: AC-2024-9981</p>
+</div>
+<div class="bg-surface-container-low rounded-2xl p-4 space-y-3">
+<div class="flex justify-between items-center">
+<span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Books Borrowed</span>
+<span class="text-sm font-bold text-primary">12</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Active Loans</span>
+<span class="text-sm font-bold text-primary">3</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Overdue Fees</span>
+<span class="text-sm font-bold text-error">$0.00</span>
+</div>
+</div>
+<div class="space-y-3">
+<p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider px-1">Recent Activity</p>
+<div class="space-y-2">
+<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors">
+<div class="w-8 h-8 rounded-lg bg-tertiary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-tertiary" data-icon="menu_book">menu_book</span>
+</div>
+<div>
+<p class="text-[11px] font-bold text-primary leading-none">Returned: "The Great Gatsby"</p>
+<p class="text-[10px] text-on-surface-variant">2 days ago</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-surface-container-low transition-colors">
+<div class="w-8 h-8 rounded-lg bg-secondary-fixed flex items-center justify-center">
+<span class="material-symbols-outlined text-sm text-secondary" data-icon="edit">edit</span>
+</div>
+<div>
+<p class="text-[11px] font-bold text-primary leading-none">Membership Renewed</p>
+<p class="text-[10px] text-on-surface-variant">1 week ago</p>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-3 text-primary text-xs font-bold border-2 border-primary-fixed rounded-xl hover:bg-primary-fixed transition-colors active:scale-95">
+        View Full Profile
+      </button>
+</div>
+</aside>
+</body></html>

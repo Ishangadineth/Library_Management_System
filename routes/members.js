@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db } = require('../config/firebaseConfig');
+const { admin, db } = require('../config/firebaseConfig');
 
 const checkDb = (req, res, next) => {
   if (!db) return res.status(500).json({ error: 'Database not initialized' });
@@ -10,7 +10,19 @@ const checkDb = (req, res, next) => {
 // GET member by Card ID (used for member login lookup)
 router.get('/by-card/:cardId', checkDb, async (req, res) => {
   try {
-    const snap = await db.collection('members').where('memberCardId', '==', req.params.cardId).limit(1).get();
+    const cardId = req.params.cardId.trim();
+    // 1. Try exact match
+    let snap = await db.collection('members').where('memberCardId', '==', cardId).limit(1).get();
+    
+    // 2. If not found, try UPPERCASE (usually for IDs)
+    if (snap.empty) {
+      snap = await db.collection('members').where('memberCardId', '==', cardId.toUpperCase()).limit(1).get();
+    }
+    // 3. If not found, try lowercase
+    if (snap.empty) {
+      snap = await db.collection('members').where('memberCardId', '==', cardId.toLowerCase()).limit(1).get();
+    }
+
     if (snap.empty) return res.status(404).json({ error: 'Member not found' });
     const doc = snap.docs[0];
     res.json({ id: doc.id, ...doc.data() });
@@ -130,10 +142,30 @@ router.post('/', checkDb, async (req, res) => {
   try {
     const { name, phone, address, memberCardId, photoUrl } = req.body;
     
-    // Check if Member Card ID already exists
+    // Check if Member Card ID already exists in Firestore
     const query = await db.collection('members').where('memberCardId', '==', memberCardId).get();
     if (!query.empty) {
       return res.status(400).json({ error: 'Member Card ID already exists.' });
+    }
+
+    // --- AUTO-CREATE FIREBASE AUTH ACCOUNT ---
+    // Member email for login: CardId@library.ac.lk
+    const email = `${memberCardId.toLowerCase().trim()}@library.ac.lk`;
+    try {
+      await admin.auth().createUser({
+        email,
+        password: '123456', // Default password
+        displayName: name,
+        disabled: false
+      });
+      console.log(`Firebase account created for ${email}`);
+    } catch (authErr) {
+      // If email is already in use, it's fine (maybe previously added and deleted from Firestore)
+      if (authErr.code !== 'auth/email-already-in-use') {
+        console.error('Firebase Auth creation failed:', authErr.message);
+        // We can choose to fail the request or continue. Here I'll continue
+        // as the Firestore entry is the primary reference.
+      }
     }
 
     const newMember = {
@@ -156,6 +188,19 @@ router.post('/', checkDb, async (req, res) => {
 // Delete a member
 router.delete('/:id', checkDb, async (req, res) => {
   try {
+    const memberDoc = await db.collection('members').doc(req.params.id).get();
+    if (memberDoc.exists) {
+      const { memberCardId } = memberDoc.data();
+      const email = `${memberCardId.toLowerCase().trim()}@library.ac.lk`;
+      
+      try {
+        const authUser = await admin.auth().getUserByEmail(email);
+        if (authUser) await admin.auth().deleteUser(authUser.uid);
+      } catch (authErr) {
+        // Auth user might not exist, ignore
+      }
+    }
+
     await db.collection('members').doc(req.params.id).delete();
     res.json({ message: 'Member deleted successfully' });
   } catch (error) {

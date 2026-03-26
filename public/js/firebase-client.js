@@ -64,30 +64,42 @@ window.loginWithEmail = async (email, password) => {
 // Member Login by Card ID (Card ID + default password)
 window.loginWithCardId = async (cardId, password) => {
   if (!cardId) return app.showToast('Card ID is required', true);
-  if (!password) password = '1234';
+  if (!password) password = '123456';
   const email = `${cardId.toLowerCase().trim()}@library.ac.lk`;
+
   try {
-    await auth.signInWithEmailAndPassword(email, password);
-    // If successful, onAuthStateChanged will check the backend for the role "member"
-  } catch (e) {
-    if (e.code === 'auth/user-not-found') {
-      // If user doesn't exist yet in Firebase, create them
-      try {
-        await auth.createUserWithEmailAndPassword(email, password);
-        // Now also verify the Card ID exists in Firestore
-        const memberCheck = await fetch(`/api/members/by-card/${encodeURIComponent(cardId)}`);
-        if (!memberCheck.ok) {
-          await auth.currentUser.delete();
-          return app.showToast('Card ID not found in library system', true);
-        }
-      } catch (createErr) {
-        return app.showToast(createErr.message, true);
-      }
-    } else if (e.code === 'auth/wrong-password') {
-      app.showToast('Incorrect password. Default is 1234', true);
-    } else {
-      app.showToast(e.message, true);
+    // 1. Check if Card ID exists in our library system first
+    const memberCheck = await fetch(`/api/members/by-card/${encodeURIComponent(cardId)}`);
+    if (!memberCheck.ok) {
+      return app.showToast('Card ID not found in library system.', true);
     }
+
+    // 2. Try to Sign In
+    try {
+      await auth.signInWithEmailAndPassword(email, password);
+    } catch (signInErr) {
+      // 3. Fallback: If user not found (old or new error codes), try to Create User
+      if (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-login-credentials') {
+        try {
+          await auth.createUserWithEmailAndPassword(email, password);
+        } catch (createErr) {
+          // If creation fails (e.g. email in use but different password), show original error
+          if (createErr.code === 'auth/email-already-in-use') {
+             return app.showToast('Incorrect password. Default is 1234.', true);
+          }
+          throw createErr;
+        }
+      } else {
+        throw signInErr;
+      }
+    }
+  } catch (e) {
+    console.error('Login error:', e);
+    let msg = e.message;
+    if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-login-credentials') {
+      msg = 'Incorrect password. Default is 123456.';
+    }
+    app.showToast(msg, true);
   }
 };
 
